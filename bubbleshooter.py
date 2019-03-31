@@ -8,8 +8,26 @@ class GameOverError(Exception):
     pass
 
 
-BUBBLE_RADIUS = 10
 BUBBLE_COLORS = ['yellow', 'red', 'green', 'magenta', 'blue']
+
+# bubbles are displayed with a slightly smaller radius than calculated because
+# that leaves small gaps between the bubbles, looks nicer
+BUBBLE_RADIUS = 10
+BUBBLE_DISPLAY_RADIUS = 8
+
+# bubbles can "slide" between other bubbles in handy ways with this
+EASY_SLIDE_FACTOR = 0.7
+
+
+def draw_bubble(canvas, x, y, color):
+    result = canvas.create_oval(0, 0, 0, 0, fill=color)
+    move_bubble(result, x, y)
+    return result
+
+
+def move_bubble(item, x, y):
+    item.coords = (x - BUBBLE_DISPLAY_RADIUS, y - BUBBLE_DISPLAY_RADIUS,
+                   x + BUBBLE_DISPLAY_RADIUS, y + BUBBLE_DISPLAY_RADIUS)
 
 
 class BubbleManager:
@@ -19,7 +37,7 @@ class BubbleManager:
     def __init__(self, x_bubble_count_limit, y_bubble_count_limit):
         self.x_bubble_count_limit = x_bubble_count_limit
         self.y_bubble_count_limit = y_bubble_count_limit
-        self.attached_bubbles = set()     # 3-tuples: (x_count, y_count, color)
+        self.attached_bubbles = {}     # {(x_count, y_count): color}
 
         for i in range(y_bubble_count_limit // 2):
             self._add_bubble_row()
@@ -27,21 +45,19 @@ class BubbleManager:
     # removes bubbles that don't touch other bubbles or the ceiling
     def _remove_loose_bubbles(self):
         not_loose = set()
-        attached_counts = {xyc[:2] for xyc in self.attached_bubbles}
 
-        def recurser(recurser_x, recurser_y):
-            if (recurser_x, recurser_y) in attached_counts and (recurser_x, recurser_y) not in not_loose:
-                not_loose.add((recurser_x, recurser_y))
-                for x, y in self._get_neighbors(recurser_x, recurser_y):
-                    recurser(x, y)
+        def recurser(recurser_counts):
+            if recurser_counts in (self.attached_bubbles.keys() - not_loose):
+                not_loose.add(recurser_counts)
+                for neighbor in self._get_neighbors(recurser_counts):
+                    recurser(neighbor)
 
         for x in range(self.x_bubble_count_limit):
-            recurser(x, 0)
+            recurser((x, 0))
 
         did_something = False
-        for x, y in attached_counts - not_loose:
-            color = {(x, y): c for x, y, c in self.attached_bubbles}[(x, y)]
-            self.attached_bubbles.remove((x, y, color))
+        for counts in self.attached_bubbles.keys() - not_loose:
+            del self.attached_bubbles[counts]
             did_something = True
         if did_something:
             # removing the loose bubbles might have created more loose bubbles
@@ -50,7 +66,7 @@ class BubbleManager:
 
     # raises GameOverError
     def _check_game_over(self):
-        for x_count, y_count, color in self.attached_bubbles:
+        for x_count, y_count in self.attached_bubbles:
             assert 0 <= x_count < self.x_bubble_count_limit
             assert 0 <= y_count
             if y_count >= self.y_bubble_count_limit:
@@ -59,10 +75,10 @@ class BubbleManager:
     # raises GameOverError
     def _add_bubble_row(self):
         self.attached_bubbles = {
-            (x_count, y_count + 1, color)
-            for x_count, y_count, color in self.attached_bubbles}
+            (x_count, y_count + 1): color
+            for (x_count, y_count), color in self.attached_bubbles.items()}
         for x in range(self.x_bubble_count_limit):
-            self.attached_bubbles.add((x, 0, random.choice(BUBBLE_COLORS)))
+            self.attached_bubbles[(x, 0)] = random.choice(BUBBLE_COLORS)
 
         self._remove_loose_bubbles()
         self._check_game_over()
@@ -75,11 +91,12 @@ class BubbleManager:
         return radiuses * BUBBLE_RADIUS
 
     def get_coords(self, bubble):
-        x_count, y_count = bubble[:2]   # ignore color, if any
+        x_count, y_count = bubble
         return ((1 + (y_count % 2) + 2*x_count) * BUBBLE_RADIUS,
                 (1 + y_count*math.sqrt(3)) * BUBBLE_RADIUS)
 
-    def _get_neighbors(self, x_count, y_count):
+    def _get_neighbors(self, counts):
+        x_count, y_count = counts
         # this returns the neighbors A,B,C,D,E,F of X
         #
         #  A B
@@ -96,19 +113,18 @@ class BubbleManager:
                 if x in range(self.x_bubble_count_limit)
                 and y in range(self.y_bubble_count_limit)}
 
-    def _get_same_color_neighbors(self, x_count, y_count):
-        color_dict = {(x, y): color for x, y, color in self.attached_bubbles}
-        looking4color = color_dict[x_count, y_count]
-        result = [(x_count, y_count, looking4color)]
+    def _get_same_color_neighbors(self, counts):
+        looking4color = self.attached_bubbles[counts]
+        result = []
 
-        def recurser(recurser_x, recurser_y):
-            for x, y in self._get_neighbors(recurser_x, recurser_y):
-                if (color_dict.get((x, y), None) == looking4color and
-                        (x, y, color_dict[(x, y)]) not in result):
-                    result.append((x, y, color_dict[(x, y)]))
-                    recurser(x, y)
+        def recurser(recurser_counts):
+            result.append(recurser_counts)
+            for neighbor in self._get_neighbors(recurser_counts):
+                if (self.attached_bubbles.get(neighbor, None) == looking4color
+                        and neighbor not in result):
+                    recurser(neighbor)
 
-        recurser(x_count, y_count)
+        recurser(counts)
         return result
 
     # returns False if the moving bubble doesn't need to stop yet
@@ -119,8 +135,7 @@ class BubbleManager:
             for attached in self.attached_bubbles:
                 other_x, other_y = self.get_coords(attached)
                 distance = math.hypot(x - other_x, y - other_y)
-                # TODO: this seems to be a bit too strict
-                if distance <= 2*BUBBLE_RADIUS:
+                if distance <= 2*BUBBLE_RADIUS*EASY_SLIDE_FACTOR:
                     break
             else:
                 return False
@@ -135,15 +150,15 @@ class BubbleManager:
                 if counts not in existing_counts:
                     possible_x, possible_y = self.get_coords(counts)
                     distance = math.hypot(x - possible_x, y - possible_y)
-                    places.append((x_count, y_count, distance))
+                    places.append((counts, distance))
 
-        x_count, y_count, junk = min(places, key=(lambda place: place[-1]))
-        self.attached_bubbles.add((x_count, y_count, color))
+        counts, junk = min(places, key=(lambda place: place[-1]))
+        self.attached_bubbles[counts] = color
 
-        same_color = self._get_same_color_neighbors(x_count, y_count)
+        same_color = self._get_same_color_neighbors(counts)
         if len(same_color) >= 3:
-            for bubble in same_color:
-                self.attached_bubbles.remove(bubble)
+            for same_color_counts in same_color:
+                del self.attached_bubbles[same_color_counts]
 
         self._remove_loose_bubbles()
         self._check_game_over()
@@ -153,16 +168,10 @@ class BubbleManager:
         for item in canvas.find_withtag('attached_bubble'):
             item.delete()
 
-        for bubble in self.attached_bubbles:
-            color = bubble[2]
-            centerx, centery = self.get_coords(bubble)
-            canvas.create_oval(
-                centerx - BUBBLE_RADIUS,
-                centery - BUBBLE_RADIUS,
-                centerx + BUBBLE_RADIUS,
-                centery + BUBBLE_RADIUS,
-                fill=color,
-            ).tags.add('attached_bubble')
+        for counts, color in self.attached_bubbles.items():
+            centerx, centery = self.get_coords(counts)
+            item = draw_bubble(canvas, centerx, centery, color)
+            item.tags.add('attached_bubble')
 
 
 class ShotBubble:
@@ -178,7 +187,7 @@ class ShotBubble:
         self._canvas_item = None
 
     def draw(self, canvas):
-        self._canvas_item = canvas.create_oval(0, 0, 0, 0, fill=self.color)
+        self._canvas_item = draw_bubble(canvas, 0, 0, self.color)
         self._canvas_item.tags.add('shot_bubble')
         self._update_item_coords()
 
@@ -196,9 +205,7 @@ class ShotBubble:
         self._update_item_coords()
 
     def _update_item_coords(self):
-        self._canvas_item.coords = (
-            self.x - BUBBLE_RADIUS, self.y - BUBBLE_RADIUS,
-            self.x + BUBBLE_RADIUS, self.y + BUBBLE_RADIUS)
+        move_bubble(self._canvas_item, self.x, self.y)
 
 
 class Shooter:
@@ -219,15 +226,13 @@ class Shooter:
             self._center_y - self._radius,
             self._center_x + self._radius,
             self._center_y + self._radius,
-        ).tags.add('shooter')
+        )
         self._line = canvas.create_line(
             self._center_x, self._center_y, 0, 0)
-        self._line.tags.add('shooter')
         self._next_bubble_item = canvas.create_oval(
             self._center_x - BUBBLE_RADIUS, self._center_y - BUBBLE_RADIUS,
             self._center_x + BUBBLE_RADIUS, self._center_y + BUBBLE_RADIUS,
             fill=self._next_bubble_color)
-        self._next_bubble_item.tags.add('shooter')
 
         self._set_angle(self._angle)
 
@@ -244,9 +249,7 @@ class Shooter:
         end_x = self._center_x + self._radius*math.cos(angle)
         end_y = self._center_y + self._radius*math.sin(angle)
         self._line.coords = (self._center_x, self._center_y, end_x, end_y)
-        self._next_bubble_item.coords = (
-            self._center_x - BUBBLE_RADIUS, self._center_y - BUBBLE_RADIUS,
-            self._center_x + BUBBLE_RADIUS, self._center_y + BUBBLE_RADIUS)
+        move_bubble(self._next_bubble_item, self._center_x, self._center_y)
 
     def aim_to(self, x, y):
         x_diff = x - self._center_x
