@@ -9,7 +9,7 @@ class GameOverError(Exception):
     pass
 
 
-BUBBLE_COLORS = ['yellow', 'red', 'green', 'magenta', 'blue']
+BUBBLE_COLORS = ['yellow', 'red', 'green', 'magenta', 'blue', 'orange']
 
 # bubbles are displayed with a slightly smaller radius than calculated because
 # that leaves small gaps between the bubbles, looks nicer
@@ -51,7 +51,7 @@ class BubbleManager:
         self._attached_bubbles = {}     # {(x_count, y_count): color}
 
         for i in range(y_bubble_count_limit // 2):
-            self.add_bubble_row()
+            self.add_bubble_row(colors=BUBBLE_COLORS)
 
     # removes bubbles that don't touch other bubbles or the ceiling
     def _remove_loose_bubbles(self):
@@ -84,14 +84,30 @@ class BubbleManager:
                 print('GAME OVER')
                 raise GameOverError
 
+    def get_used_colors(self):
+        return set(self._attached_bubbles.values())
+
     # raises GameOverError
     # TODO: don't always add all colors
-    def add_bubble_row(self):
-        self._attached_bubbles = {
-            (x_count, y_count + 1): color
-            for (x_count, y_count), color in self._attached_bubbles.items()}
-        for x in range(self._x_bubble_count_limit):
-            self._attached_bubbles[(x, 0)] = random.choice(BUBBLE_COLORS)
+    def add_bubble_row(self, *, colors=None):
+        if colors is None:
+            colors = list(self.get_used_colors())
+
+        # in the beginning of the game, add 1 row at a time
+        # when all bubbles of some color are gone, add 2 rows at a time
+        # etc
+        if colors:
+            how_many_rows = len(BUBBLE_COLORS) - len(colors) + 1
+        else:
+            # TODO: win message
+            how_many_rows = 0
+
+        for junk in range(how_many_rows):
+            self._attached_bubbles = {
+                (x_count, y_count + 1): color
+                for (x_count, y_count), color in self._attached_bubbles.items()}
+            for x in range(self._x_bubble_count_limit):
+                self._attached_bubbles[(x, 0)] = random.choice(colors)
 
         self._remove_loose_bubbles()
         self._check_game_over()
@@ -187,9 +203,6 @@ class BubbleManager:
             item = draw_bubble(canvas, centerx, centery, color)
             item.tags.add('attached_bubble')
 
-    def get_used_colors(self):
-        return set(self._attached_bubbles.values())
-
 
 class ShotBubble:
 
@@ -277,7 +290,8 @@ class Shooter:
     def shoot(self, next_color_choices):
         result = ShotBubble(self._center_x, self._center_y, self._angle,
                             self._canvas_width, self._next_bubble_color)
-        self._next_bubble_color = random.choice(list(next_color_choices))
+        if next_color_choices:
+            self._next_bubble_color = random.choice(list(next_color_choices))
         self._next_bubble_item.config['fill'] = self._next_bubble_color
         return result
 
