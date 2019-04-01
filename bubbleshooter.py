@@ -49,6 +49,7 @@ class BubbleManager:
         self._x_bubble_count_limit = x_bubble_count_limit
         self._y_bubble_count_limit = y_bubble_count_limit
         self._attached_bubbles = {}     # {(x_count, y_count): color}
+        self.canvas = None    # must be set later
 
         for i in range(y_bubble_count_limit // 2):
             self.add_bubble_row(colors=BUBBLE_COLORS)
@@ -76,7 +77,19 @@ class BubbleManager:
             self._remove_loose_bubbles()
 
     # raises GameOverError
-    def _check_game_over(self):
+    def _check_game_over_or_win(self):
+        if self.canvas is not None:
+            for item in self.canvas.find_withtag('win_message'):
+                item.delete()
+
+        if not self._attached_bubbles:
+            item = self.canvas.create_text(
+                self.canvas.config['width'] / 2,
+                self.canvas.config['height'] / 2,
+                text="you win :)", font=('', 20, ''), anchor='center')
+            item.tags.add('win_message')
+            return
+
         for x_count, y_count in self._attached_bubbles:
             assert 0 <= x_count < self._x_bubble_count_limit
             assert 0 <= y_count
@@ -110,7 +123,7 @@ class BubbleManager:
                 self._attached_bubbles[(x, 0)] = random.choice(colors)
 
         self._remove_loose_bubbles()
-        self._check_game_over()
+        self._check_game_over_or_win()
 
     def get_width(self):
         return (2*self._x_bubble_count_limit + 1) * BUBBLE_RADIUS
@@ -168,13 +181,12 @@ class BubbleManager:
                 return AttachResult.NOT_ATTACHED
 
         # what's the best place to put this bubble to?
-        existing_counts = {bubble[:2] for bubble in self._attached_bubbles}
         places = []     # contains (x_count, y_count, distance) tuples
         for x_count in range(self._x_bubble_count_limit):
             # +1 to make it possible to get game over this way
             for y_count in range(self._y_bubble_count_limit + 1):
                 counts = (x_count, y_count)
-                if counts not in existing_counts:
+                if counts not in self._attached_bubbles:
                     possible_x, possible_y = self.get_coords(counts)
                     distance = math.hypot(x - possible_x, y - possible_y)
                     places.append((counts, distance))
@@ -191,16 +203,16 @@ class BubbleManager:
             result = AttachResult.ATTACHED
 
         self._remove_loose_bubbles()
-        self._check_game_over()
+        self._check_game_over_or_win()
         return result
 
-    def draw_attached_bubbles(self, canvas):
-        for item in canvas.find_withtag('attached_bubble'):
+    def draw_attached_bubbles(self):
+        for item in self.canvas.find_withtag('attached_bubble'):
             item.delete()
 
         for counts, color in self._attached_bubbles.items():
             centerx, centery = self.get_coords(counts)
-            item = draw_bubble(canvas, centerx, centery, color)
+            item = draw_bubble(self.canvas, centerx, centery, color)
             item.tags.add('attached_bubble')
 
 
@@ -308,7 +320,7 @@ class BubbleShooterUI(teek.Frame):
 
         self._manager = BubbleManager(20, 15)
         shooter_size = 70
-        self._canvas = teek.Canvas(
+        self._canvas = self._manager.canvas = teek.Canvas(
             self, width=self._manager.get_width(),
             height=(self._manager.get_height() + shooter_size), bg='white')
         self._canvas.pack()
@@ -319,7 +331,7 @@ class BubbleShooterUI(teek.Frame):
            shooter_size, self._manager.get_width(), self._manager.get_height())
         self._shot_bubble = None
 
-        self._manager.draw_attached_bubbles(self._canvas)
+        self._manager.draw_attached_bubbles()
         self._shooter.draw(self._canvas)
 
     def _on_mouse_move(self, event):
@@ -356,7 +368,7 @@ class BubbleShooterUI(teek.Frame):
             for item in self._canvas.find_withtag('shot_bubble'):
                 item.delete()
             self._shot_bubble = None
-            self._manager.draw_attached_bubbles(self._canvas)
+            self._manager.draw_attached_bubbles()
 
 
 def main():
