@@ -25,12 +25,6 @@ class GameStatus(enum.Enum):
     WIN = 3
 
 
-class AttachResult(enum.Enum):
-    NOT_ATTACHED = 0
-    ATTACHED = 1
-    ATTACHED_AND_BUBBLES_DESTROYED = 2
-
-
 class Bubble:
 
     def __init__(self, coords, color, move_callback):
@@ -74,7 +68,7 @@ class Game:
         # False
         self._timeout_callback = timeout_callback
 
-        # takes 1 argument, the new status
+        # takes no arguments
         self.status_changed_callback = status_changed_callback
 
         self.shot_bubble_moving = False
@@ -99,7 +93,7 @@ class Game:
 
         if not self._attached_bubbles:
             self.status = GameStatus.WIN
-            self.status_changed_callback(self.status)
+            self.status_changed_callback()
             return
 
         for x_count, y_count in self._attached_bubbles:
@@ -107,7 +101,7 @@ class Game:
             assert 0 <= y_count
             if y_count >= _Y_BUBBLE_COUNT_LIMIT:
                 self.status = GameStatus.GAME_OVER
-                self.status_changed_callback(self.status)
+                self.status_changed_callback()
                 return
 
     # removes bubbles that don't touch other bubbles or the ceiling
@@ -156,7 +150,6 @@ class Game:
                 for (x_count, y_count), bubble in self._attached_bubbles.items()}
             for counts, bubble in self._attached_bubbles.items():
                 bubble.coords = self._get_coords(counts)
-                self._bubble_move_callback(bubble)
 
             for x_count in range(_X_BUBBLE_COUNT_LIMIT):
                 coords = self._get_coords((x_count, 0))

@@ -100,18 +100,18 @@ class BubbleShooterWidget(teek.Frame):
 
         teeky_callback()
 
-    def _on_status_changed(self, status):
+    def _on_status_changed(self):
         if self._status_text is not None:
             self._status_text.delete()
 
-        if status == core.GameStatus.GAME_OVER:
+        if self._game.status == core.GameStatus.GAME_OVER:
             text = "Game Over :("
-        elif status == core.GameStatus.WIN:
+        elif self._game.status == core.GameStatus.WIN:
             text = "You win :)"
-        elif status == core.GameStatus.PLAYING:
+        elif self._game.status == core.GameStatus.PLAYING:
             return
         else:   # pragma: no cover
-            raise NotImplementedError(status)
+            raise NotImplementedError(self._game.status)
 
         self._status_text = self._canvas.create_text(
             self._canvas.config['width']/2, self._canvas.config['height']/2,
