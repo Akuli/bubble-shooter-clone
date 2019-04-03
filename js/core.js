@@ -8,7 +8,7 @@ define([], function() {
   const EASY_SLIDE_FACTOR = 0.7
 
   // how many times to shoot until a new row of bubbles appears?
-  const SHOTS_PER_ROW = 5;
+  const SHOTS_PER_ROW = 4;
 
   // size, as number of bubbles
   const X_BUBBLE_COUNT_LIMIT = 20;
