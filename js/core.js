@@ -223,7 +223,7 @@ define([], function() {
       */
       const result = [
         [ xCount-1, yCount ],     // C
-        [ xCount+1, yCount ],     // C
+        [ xCount+1, yCount ],     // D
       ];
       for (const y of [ yCount-1, yCount+1 ]) {
         result.push([ xCount - 1 + (yCount % 2), y ]);  // A or E
