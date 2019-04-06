@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const bubbleAreaDiv = document.getElementById('game-bubble-area');
   const shooterDiv = document.getElementById('game-shooter');
   const statusMessageP = document.getElementById('game-status-message');
+  const newGameButton = document.getElementById('new-game-button');
 
   const bubbleElements = new Map();
   let shooterAngle = -2*Math.PI/4;   // up
@@ -68,17 +69,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    /*
-    class Shooter {
-      constructor() {
-        this._angle = -2*Math.PI/4;    // up
-        this._centerX = core.WIDTH / 2;
-        this._centerY = core.HEIGHT + lel;
-      }
-    }
-    */
+    let game;
 
-    const game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
+    function newGame() {
+      for (const oldBubble of Array.from(bubbleElements.keys())) {
+        bubbleDestroyCallback(oldBubble);
+      }
+      game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
+      statusChangedCallback(core.GameStatus.PLAYING);
+    }
+
+    newGameButton.addEventListener('click', () => newGame());
+    newGame();
 
     gameDiv.addEventListener('click', event => {
       if (game.status === core.GameStatus.PLAYING && !game.shotBubbleMoving) {
