@@ -50,6 +50,7 @@
 #game-container + * {
     display: block;
     clear: both;
+    margin-top: 1em;
 }
 
 .square {
