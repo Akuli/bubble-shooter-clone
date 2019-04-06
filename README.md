@@ -1,11 +1,12 @@
-# Bubble Shooter Clone
+# HTML Games
 
-This is my version of the classic Bubble Shooter game.
+This repository contains my implementations of classic games for web
+browsers. [Click here](https://akuli.github.io/html-games/) to play.
 
-![Screenshot.](screenshot.png)
+Here are some screenshots:
 
-To run this game, you need git and a web browser. First download the game:
+![Bubble shooter screenshot.](bubbleshooter/screenshot.png)
 
-    git clone https://github.com/Akuli/bubble-shooter-clone
+![Minesweeper screenshot.](minesweeper/screenshot.png)
 
-Then open `bubble-shooter-clone/index.html` in your web browser.
+Clone the repository, open `index.html` and edit the code to develop these games.
