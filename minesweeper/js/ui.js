@@ -26,9 +26,15 @@ define(['./core.js'], function(core) {
           elem.style.gridColumn = x+1;
           elem.style.gridRow = y+1;
           elem.classList.add('square');
-          elem.addEventListener('click', () => {
+          elem.addEventListener('click', event => {
             this.currentGame.open([ x, y ]);
             this._updateSquares();
+            event.preventDefault();
+          });
+          elem.addEventListener('contextmenu', event => {
+            this.currentGame.toggleFlag([ x, y ]);
+            this._updateSquares();
+            event.preventDefault();
           });
 
           this._squareElems[x + ',' + y] = elem;
