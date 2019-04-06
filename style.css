@@ -40,4 +40,5 @@ input:invalid {
     border-radius: 8px;
     background-color: whitesmoke;
     border: 1px solid gray;
+    user-select: none;
 }

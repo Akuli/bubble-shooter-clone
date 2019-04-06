@@ -5,8 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const heightInput = document.getElementById('height-input');
   const mineCountInput = document.getElementById('mine-count-input');
   const minePercentageInput = document.getElementById('mine-percentage-input');
+
   const newGameButton = document.getElementById('new-game-button');
   const gameDiv = document.getElementById('game');
+  const statusMessagePara = document.getElementById('game-status-message');
 
   function validateEverything(minePercentageToCount) {
     if (!widthInput.checkValidity() || !heightInput.checkValidity()) {
@@ -59,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   require(['./js/ui.js'], function(UI) {
-    const ui = new UI(gameDiv);
+    const ui = new UI(gameDiv, statusMessagePara);
 
     function startNewGame() {
       const width = +widthInput.value;

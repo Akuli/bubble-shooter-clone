@@ -18,14 +18,13 @@
     /* javascript creates the rows and columns, and they use these sizes automatically */
     grid-auto-columns: 2em;
     grid-auto-rows: 2em;
+
+    position: relative;   /* for the status message */
 }
 
 .status-message {
-    position: relative;
-    grid-column-start: 1;
-    grid-row-start: 1;
-    grid-column-end: span puttingAnythingHereStretchesItAllTheWay;
-    grid-row-end: span puttingAnythingHereStretchesItAllTheWay;
+    position: absolute;
+    width: 100%;
     top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -57,5 +56,25 @@
     border: 1px solid #999;
     border-radius: 8px;
     margin: 1px;
-    background-color: #ddd;
+    background-color: #ccc;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+.square.opened {
+    background-color: #fff;
+}
+
+.square > span {
+    font-size: 1.3em;
+}
+
+.square.number0 { color: blue; }
+.square.number1 { color: green; }
+.square.number2 { color: darkgoldenrod; }
+.square.number3 { color: red; }
+.square.number4 { color: cyan; }
+.square.number5, .square.number6, .square.number7, .square.number8 { color: magenta; }
+.square.openedmine { background-color: red; }
