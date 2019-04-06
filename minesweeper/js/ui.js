@@ -13,17 +13,32 @@ define(['./core.js'], function(core) {
       this.currentGame = null;
     }
 
-    newGame() {
+    _onStatusChanged() {
+      if (this.currentGame.status === core.GameStatus.GAME_OVER) {
+        this._statusMessageElem.classList.remove('hidden');
+        this._statusMessageElem.textContent = "Game Over :(";
+      } else if (this.currentGame.status === core.GameStatus.WIN) {
+        this._statusMessageElem.textContent = "You win :)";
+        this._statusMessageElem.classList.remove('hidden');
+      } else if (this.currentGame.status === core.GameStatus.PLAYING) {
+        this._statusMessageElem.classList.add('hidden');
+      } else {
+        throw new Error("unexpected status: " + this.currentGame.status);
+      }
+    }
+
+    newGame(width, height, mineCount) {
       for (const elem of Object.values(this._squareElems)) {
         this._gridDiv.removeChild(elem);
       }
       this._squareElems = {};
       this._statusMessageElem.classList.add('hidden');
 
-      this.currentGame = new core.Game(...arguments);
+      this.currentGame = new core.Game(width, height, mineCount, (() => this._onStatusChanged()));
+      this._onStatusChanged();
 
-      for (let x = 0; x < this.currentGame.width; x++) {
-        for (let y = 0; y < this.currentGame.height; y++) {
+      for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
           const elem = document.createElement('div');
           const innerSpan = document.createElement('span');
           elem.appendChild(innerSpan);
@@ -99,14 +114,6 @@ define(['./core.js'], function(core) {
             }
           }
         }
-      }
-
-      if (this.currentGame.status === core.GameStatus.GAME_OVER) {
-        this._statusMessageElem.classList.remove('hidden');
-        this._statusMessageElem.textContent = "Game Over :(";
-      } else if (this.currentGame.status === core.GameStatus.WIN) {
-        this._statusMessageElem.textContent = "You win :)";
-        this._statusMessageElem.classList.remove('hidden');
       }
     }
   }

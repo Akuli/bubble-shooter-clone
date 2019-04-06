@@ -4,7 +4,7 @@ define([], function() {
   const GameStatus = Object.freeze({ PLAYING: 1, GAME_OVER: 2, WIN: 3 });
 
   class Game {
-    constructor(width, height, mineCount) {
+    constructor(width, height, mineCount, statusChangedCb) {
       if (mineCount > width*height - 1) {
         throw new Error("too many mines");
       }
@@ -22,6 +22,7 @@ define([], function() {
 
       this._minesAdded = false;
       this.status = GameStatus.PLAYING;
+      this._statusChangedCb = statusChangedCb;
     }
 
     _getNeighbors(xy) {
@@ -87,6 +88,7 @@ define([], function() {
 
       if (this._map[xy].mine) {
         this.status = GameStatus.GAME_OVER;
+        this._statusChangedCb();
       } else if (this._countNeighborMines(xy) === 0) {
         for (const neighbor of this._getNeighbors(xy)) {
           this._openRecurser(neighbor);
@@ -117,6 +119,7 @@ define([], function() {
         }
       }
       this.status = GameStatus.WIN;
+      this._statusChangedCb();
     }
 
     toggleFlag(xy) {
