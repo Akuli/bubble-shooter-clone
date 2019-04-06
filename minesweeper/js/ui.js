@@ -36,6 +36,11 @@ define(['./core.js'], function(core) {
             this._updateSquares();
             event.preventDefault();
           });
+          elem.addEventListener('dblclick', event => {
+            this.currentGame.openAroundIfSafe([ x, y ]);
+            this._updateSquares()
+            event.preventDefault();
+          });
           elem.addEventListener('contextmenu', event => {
             this.currentGame.toggleFlag([ x, y ]);
             this._updateSquares();

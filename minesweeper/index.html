@@ -16,12 +16,7 @@
     <p>
     There are some mines hidden in the grid below. Try to open all the squares that aren't mines by
     clicking them, but don't click the mines. The numberes in opened squares indicate how many of
-    the 8 squares surrounding them are mines.
-    </p>
-
-    <p>
-    To make it easier to keep track of the squares that you think are mines, you can mark mines by
-    right-clicking the squares.
+    the 8 squares surrounding them (aka "neighbor squares") are mines.
     </p>
 
     <div id="game-container">
@@ -44,6 +39,18 @@
             <button id="new-game-button" class="new-game-button">New Game</button>
         </div>
     </div>
+
+    <p>
+    You can flag the squares by right-clicking. This is intended to be used so that when you know
+    that some square is a mine, you put a flag there.
+    </p>
+
+    <p>
+    If the number of an opened square is equal to the number of flagged squares around it, then any
+    of the square's non-flagged neighbor squares can't be mines, assuming that you didn't flag any
+    not-mines. In those cases, you can double click the number, and all those other squares are
+    automatically opened.
+    </p>
 
     <p id="link2index"><a href="../index.html">Back to the list of games</a></p>
 </body>

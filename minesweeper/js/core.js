@@ -125,6 +125,29 @@ define([], function() {
       }
       this._map[xy].flagged = !this._map[xy].flagged;
     }
+
+    openAroundIfSafe(xy) {
+      if (this.status !== GameStatus.PLAYING || !this._map[xy].opened) {
+        return;
+      }
+
+      let neighborMines = 0;
+      let neighborFlags = 0;
+      for (const neighbor of this._getNeighbors(xy)) {
+        if (this._map[neighbor].mine) {
+          neighborMines++;
+        }
+        if (this._map[neighbor].flagged) {
+          neighborFlags++;
+        }
+      }
+
+      if (neighborMines === neighborFlags) {
+        for (const neighbor of this._getNeighbors(xy)) {
+          this.open(neighbor);
+        }
+      }
+    }
   }
 
   return {
