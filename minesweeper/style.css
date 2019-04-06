@@ -1,0 +1,54 @@
+#minesweeper-inputs {
+    display: grid;
+    grid-template-columns: 10em 1fr;
+    row-gap: 3px;
+    margin-bottom: 10px;
+}
+
+#minesweeper-inputs > input {
+    width: 5em;
+}
+
+#game {
+    float: left;
+    margin-right: 2em;
+    margin-bottom: 1em;
+
+    display: grid;
+    /* javascript creates the rows and columns, and they use these sizes automatically */
+    grid-auto-columns: 3em;
+    grid-auto-rows: 3em;
+}
+
+.status-message {
+    position: relative;
+    grid-column-start: 1;
+    grid-row-start: 1;
+    grid-column-end: span puttingAnythingHereStretchesItAllTheWay;
+    grid-row-end: span puttingAnythingHereStretchesItAllTheWay;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    /* TODO: make these less hard-coded
+    the text shouldn't be given any more space than it needs
+    centering the text instead is a workaround for that
+    */
+    height: 1em;
+    max-width: 8em;
+    text-align: center;
+}
+
+.status-message:before {
+    content: "";
+    position: absolute;
+}
+
+#game-settings {
+    float: left;
+}
+
+#game-container + * {
+    display: block;
+    clear: both;
+}

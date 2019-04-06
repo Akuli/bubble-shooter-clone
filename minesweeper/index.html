@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Minesweeper Clone</title>
+    <script src="../js/min/require.min.js"></script>
+    <script src="js/index.js"></script>
+    <link rel="stylesheet" href="style.css"></link>
+    <link rel="stylesheet" href="../style.css"></link>
+</head>
+
+<body>
+    <h1>Minesweeper Clone</h1>
+
+    <div id="game-container">
+        <div id="game" class="game-area">
+            <p class="status-message hidden"></p>
+        </div>
+
+        <div id="game-settings" class="setting-box">
+            <div id="minesweeper-inputs">
+                <label for="width-input">Width:</label>
+                <input type="number" id="width-input" min="1" value="10" required />
+                <label for="height-input">Height:</label>
+                <input type="number" id="height-input" min="1" value="10" required />
+                <label for="mine-count-input">Number of mines:</label>
+                <input type="number" id="mine-count-input" min="1" value="10" required />
+                <label for="mine-percentage-input">Mine percentage:</label>
+                <input pattern="[1-9][0-9]?(\.[0-9]*)?%" id="mine-percentage-input" required />
+            </div>
+
+            <button id="new-game-button" class="new-game-button">New Game</button>
+        </div>
+    </div>
+
+    <p id="link2index"><a href="../index.html">Back to the list of games</a></p>
+</body>
+
+</html>

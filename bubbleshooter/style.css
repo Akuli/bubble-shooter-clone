@@ -6,14 +6,11 @@
 
 #game-bubble-area {
     position: absolute;
-    border: 1px solid gray;
-    border-radius: 8px;
-    background-color: whitesmoke;
 }
 
 .bubble {
     position: absolute;
-    border-radius: 50px;
+    border-radius: 50%;
 }
 
 #game-shooter {
@@ -66,16 +63,8 @@
                 linear-gradient(240deg, rgba(170,0,170,0.6), rgba(0,0,255,0) 90%);
 }
 
-#game-status-message {
-    position: absolute;   /* make it show up above all the bubbles */
+.status-message {
+    /* make it show up above all the bubbles */
+    position: absolute;
     display: block;
-    font-size: 3em;
-    font-weight: bold;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    padding: 10px;
-}
-
-#game-status-message.hidden {
-    display: none;
 }
