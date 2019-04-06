@@ -6,6 +6,7 @@ define(['./core.js'], function(core) {
 
   class UI {
     constructor(gridDiv, statusMessageElem) {
+      gridDiv.addEventListener('contextmenu', event => event.preventDefault());   // makes it less annoying
       this._gridDiv = gridDiv;
       this._statusMessageElem = statusMessageElem;
       this._squareElems = {};
