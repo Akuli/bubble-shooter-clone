@@ -44,18 +44,12 @@ document.addEventListener('DOMContentLoaded', function() {
     newGameButton.disabled = false;
   }
 
-  function startNewGame() {
-    const width = +widthInput.value;
-    const height = +heightInput.value;
-    const nMines = +mineCountInput.value;
-    console.log(`starting new game: ${width}x${height}, ${nMines} mines`);
-  }
-
   // minePercentageInput is special because validateEverything(true) would change its value
   widthInput.addEventListener('input', () => validateEverything(true));
   heightInput.addEventListener('input', () => validateEverything(true));
   mineCountInput.addEventListener('input', () => validateEverything(false));
   minePercentageInput.addEventListener('change', () => validateEverything(true));
+  validateEverything(false);   // default count is set in the html, percentage isn't
 
   const allInputs = [ widthInput, heightInput, mineCountInput, minePercentageInput ];
   for (const input of allInputs) {
@@ -63,8 +57,18 @@ document.addEventListener('DOMContentLoaded', function() {
       newGameButton.disabled = !allInputs.every(input => input.validity.valid);
     });
   }
-  newGameButton.addEventListener('click', startNewGame);
 
-  validateEverything();
-  startNewGame();
+  require(['./js/ui.js'], function(UI) {
+    const ui = new UI(gameDiv);
+
+    function startNewGame() {
+      const width = +widthInput.value;
+      const height = +heightInput.value;
+      const nMines = +mineCountInput.value;
+      ui.newGame(width, height, nMines);
+    }
+
+    newGameButton.addEventListener('click', startNewGame);
+    startNewGame();
+  });
 });

@@ -16,8 +16,8 @@
 
     display: grid;
     /* javascript creates the rows and columns, and they use these sizes automatically */
-    grid-auto-columns: 3em;
-    grid-auto-rows: 3em;
+    grid-auto-columns: 2em;
+    grid-auto-rows: 2em;
 }
 
 .status-message {
@@ -51,4 +51,11 @@
 #game-container + * {
     display: block;
     clear: both;
+}
+
+.square {
+    border: 1px solid #999;
+    border-radius: 8px;
+    margin: 1px;
+    background-color: #ddd;
 }
