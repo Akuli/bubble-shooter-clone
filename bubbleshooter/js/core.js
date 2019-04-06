@@ -75,14 +75,10 @@ define([], function() {
       // takes no arguments
       this._statusChangedCb = statusChangedCb;
 
-      this.shotBubbleMoving = false;
-      this._shootCounter = 0;
+      this._shotBubble = null;
+      this._nextShotBubble = null;
 
-      for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
-        this._addBubbleRowOrRows(COLOR_IDS);
-      }
-
-      this._createNextShotBubble();
+      this.reset();
     }
 
     _createNextShotBubble() {
@@ -91,6 +87,36 @@ define([], function() {
         randomChoice(this._getUsedColorIds()),
         this._bubbleMoveCb);
       this._bubbleCreateCb(this._nextShotBubble);
+    }
+
+    reset() {
+      if (this.status !== GameStatus.PLAYING) {
+        this.status = GameStatus.PLAYING;
+        this._statusChangedCb();
+      }
+
+      for (const bubble of Object.values(this._attachedBubbles)) {
+        this._bubbleDestroyCb(bubble);
+      }
+      this._attachedBubbles = {};
+
+      if (this._nextShotBubble !== null) {
+        this._bubbleDestroyCb(this._nextShotBubble);
+        this._nextShotBubble = null;
+      }
+
+      if (this._shotBubble !== null) {
+        this._bubbleDestroyCb(this._shotBubble);
+        this._shotBubble = null;
+      }
+
+      this._shootCounter = 0;
+
+      for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
+        this._addBubbleRowOrRows(COLOR_IDS);
+      }
+
+      this._createNextShotBubble();   // must be last for some reason
     }
 
     _checkPlaying() {
@@ -307,10 +333,14 @@ define([], function() {
       return true;
     }
 
+    get shotBubbleMoving() {
+      return (this._shotBubble !== null);
+    }
+
     shoot(angle) {
       const bubble = this._nextShotBubble;
       this._createNextShotBubble();
-      this.shotBubbleMoving = true;
+      this._shotBubble = bubble;
 
       const speed = 0.3;
       const correctedAngle = correctShootAngle(angle);
@@ -319,6 +349,11 @@ define([], function() {
       let prevTime = +new Date();
 
       const callback = () => {
+        if (this._shotBubble === null) {
+          // new game pressed while shot bubble was moving
+          return;
+        }
+
         const newTime = +new Date();
         const timePassed = newTime - prevTime;
         prevTime = newTime;
@@ -338,7 +373,7 @@ define([], function() {
         bubble.coords = [ x, y ];
 
         if (this._attachBubble(bubble)) {
-          this.shotBubbleMoving = false;
+          this._shotBubble = null;
         } else {
           window.requestAnimationFrame(callback);
         }

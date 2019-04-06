@@ -49,10 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function bubbleDestroyCallback(bubble) {
       const elem = bubbleElements.get(bubble);
       if (!bubbleElements.delete(bubble)) {
-        throw new Error("delete failed");
+        throw new Error("delete failed: " + bubble);
       }
       elem.parentElement.removeChild(elem);
     }
+
+    const game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
 
     function statusChangedCallback() {
       if (game.status === core.GameStatus.PLAYING) {
@@ -69,19 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    let game;
-
-    function newGame() {
-      for (const oldBubble of Array.from(bubbleElements.keys())) {
-        bubbleDestroyCallback(oldBubble);
-      }
-      game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
-      statusChangedCallback(core.GameStatus.PLAYING);
-    }
-
-    newGameButton.addEventListener('click', () => newGame());
-    newGame();
-
+    newGameButton.addEventListener('click', () => game.reset());
     gameDiv.addEventListener('click', event => {
       if (game.status === core.GameStatus.PLAYING && !game.shotBubbleMoving) {
         game.shoot(shooterAngle);
