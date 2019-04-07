@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
       elem.parentElement.removeChild(elem);
     }
 
-    const game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
+    let game = null;
 
     function statusChangedCallback() {
       if (game.status === core.GameStatus.PLAYING) {
@@ -71,11 +71,19 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    newGameButton.addEventListener('click', () => game.reset());
+    function newGame() {
+      if (game !== null) {
+        game.destroy();
+      }
+      game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
+    }
+
+    newGameButton.addEventListener('click', () => newGame());
     gameDiv.addEventListener('click', event => {
       if (game.status === core.GameStatus.PLAYING && !game.shotBubbleMoving) {
         game.shoot(shooterAngle);
       }
     });
+    newGame();
   });
 });

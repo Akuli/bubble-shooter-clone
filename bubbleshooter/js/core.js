@@ -65,7 +65,6 @@ define([], function() {
     constructor(shooterBubbleYRelative, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCb, statusChangedCb) {
       this.status = GameStatus.PLAYING;
       this._shooterBubbleY = HEIGHT + shooterBubbleYRelative;
-      this._attachedBubbles = {};   // { "xCount,yCount": Bubble }
 
       // these take 1 argument, the Bubble
       this._bubbleCreateCb = bubbleCreateCb;
@@ -77,19 +76,17 @@ define([], function() {
 
       this._shotBubble = null;
       this._nextShotBubble = null;
+      this._shootCounter = 0;
 
-      this.reset();
+      this._attachedBubbles = {};   // { "xCount,yCount": Bubble }
+      for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
+        this._addBubbleRowOrRows(COLOR_IDS);
+      }
+
+      this._createNextShotBubble();   // must be last for some reason
     }
 
-    _createNextShotBubble() {
-      this._nextShotBubble = new Bubble(
-        [ WIDTH/2, this._shooterBubbleY ],
-        randomChoice(this._getUsedColorIds()),
-        this._bubbleMoveCb);
-      this._bubbleCreateCb(this._nextShotBubble);
-    }
-
-    reset() {
+    destroy() {
       if (this.status !== GameStatus.PLAYING) {
         this.status = GameStatus.PLAYING;
         this._statusChangedCb();
@@ -98,25 +95,19 @@ define([], function() {
       for (const bubble of Object.values(this._attachedBubbles)) {
         this._bubbleDestroyCb(bubble);
       }
-      this._attachedBubbles = {};
-
-      if (this._nextShotBubble !== null) {
-        this._bubbleDestroyCb(this._nextShotBubble);
-        this._nextShotBubble = null;
-      }
-
+      this._bubbleDestroyCb(this._nextShotBubble);
       if (this._shotBubble !== null) {
         this._bubbleDestroyCb(this._shotBubble);
         this._shotBubble = null;
       }
+    }
 
-      this._shootCounter = 0;
-
-      for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
-        this._addBubbleRowOrRows(COLOR_IDS);
-      }
-
-      this._createNextShotBubble();   // must be last for some reason
+    _createNextShotBubble() {
+      this._nextShotBubble = new Bubble(
+        [ WIDTH/2, this._shooterBubbleY ],
+        randomChoice(this._getUsedColorIds()),
+        this._bubbleMoveCb);
+      this._bubbleCreateCb(this._nextShotBubble);
     }
 
     _checkPlaying() {
