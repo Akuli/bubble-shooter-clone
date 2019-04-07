@@ -11,6 +11,7 @@ define([], function() {
   const SHOTS_PER_ROW = 4;
 
   // size, as number of bubbles
+  // TODO: let the user decide these
   const X_BUBBLE_COUNT_LIMIT = 20;
   const Y_BUBBLE_COUNT_LIMIT = 15;
 
@@ -45,10 +46,17 @@ define([], function() {
   }
 
   class Bubble {
-    constructor(coords, colorId, moveCb) {
+    constructor(coords, colorId, game) {
       this._coords = coords;
       this.colorId = colorId;
-      this._moveCb = moveCb;
+      this._game = game;
+      this._doEvent('BubbleCreate');
+    }
+
+    _doEvent(name) {
+      const event = new Event(name);
+      event.bubble = this;
+      this._game.dispatchEvent(event);
     }
 
     get coords() {
@@ -57,57 +65,53 @@ define([], function() {
 
     set coords(coords) {
       this._coords = coords;
-      this._moveCb(this);
+      this._doEvent('BubbleMove');
+    }
+
+    destroy() {
+      this._doEvent('BubbleDestroy');
     }
   }
 
-  class Game {
-    constructor(shooterBubbleYRelative, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCb, statusChangedCb) {
+  class Game extends EventTarget {
+    constructor(shooterBubbleYRelative) {
+      super();
       this.status = GameStatus.PLAYING;
       this._shooterBubbleY = HEIGHT + shooterBubbleYRelative;
-
-      // these take 1 argument, the Bubble
-      this._bubbleCreateCb = bubbleCreateCb;
-      this._bubbleMoveCb = bubbleMoveCb;
-      this._bubbleDestroyCb = bubbleDestroyCb;
-
-      // takes no arguments
-      this._statusChangedCb = statusChangedCb;
-
       this._shotBubble = null;
       this._nextShotBubble = null;
       this._shootCounter = 0;
-
       this._attachedBubbles = {};   // { "xCount,yCount": Bubble }
+    }
+
+    onEventsConnected() {
       for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
         this._addBubbleRowOrRows(COLOR_IDS);
       }
-
       this._createNextShotBubble();   // must be last for some reason
     }
 
     destroy() {
       if (this.status !== GameStatus.PLAYING) {
         this.status = GameStatus.PLAYING;
-        this._statusChangedCb();
+        this.dispatchEvent(new Event('StatusChanged'));
       }
 
       for (const bubble of Object.values(this._attachedBubbles)) {
-        this._bubbleDestroyCb(bubble);
+        bubble.destroy();
       }
-      this._bubbleDestroyCb(this._nextShotBubble);
+
+      this._nextShotBubble.destroy();
+
       if (this._shotBubble !== null) {
-        this._bubbleDestroyCb(this._shotBubble);
-        this._shotBubble = null;
+        this._shotBubble.destroy();
+        this._shotBubble = null;   // for shoot()
       }
     }
 
     _createNextShotBubble() {
       this._nextShotBubble = new Bubble(
-        [ WIDTH/2, this._shooterBubbleY ],
-        randomChoice(this._getUsedColorIds()),
-        this._bubbleMoveCb);
-      this._bubbleCreateCb(this._nextShotBubble);
+        [ WIDTH/2, this._shooterBubbleY ], randomChoice(this._getUsedColorIds()), this);
     }
 
     _checkPlaying() {
@@ -120,7 +124,7 @@ define([], function() {
       this._checkPlaying();
       if (Object.entries(this._attachedBubbles).length === 0) {
         this.status = GameStatus.WIN;
-        this._statusChangedCb();
+        this.dispatchEvent(new Event('StatusChanged'));
         return;
       }
 
@@ -134,7 +138,7 @@ define([], function() {
         }
         if (yCount >= Y_BUBBLE_COUNT_LIMIT) {
           this.status = GameStatus.GAME_OVER;
-          this._statusChangedCb();
+          this.dispatchEvent(new Event('StatusChanged'));
           return;
         }
       }
@@ -145,7 +149,7 @@ define([], function() {
       if (!( delete this._attachedBubbles[counts] )) {
         throw new Error("delete failed");
       }
-      this._bubbleDestroyCb(bubble);
+      bubble.destroy();
     }
 
     _removeLooseBubbles() {
@@ -214,8 +218,7 @@ define([], function() {
 
         for (let xCount = 0; xCount < X_BUBBLE_COUNT_LIMIT; xCount++) {
           const coords = this._getCoords([ xCount, 0 ]);
-          const bubble = new Bubble(coords, randomChoice(colorIds), this._bubbleMoveCb);
-          this._bubbleCreateCb(bubble);
+          const bubble = new Bubble(coords, randomChoice(colorIds), this);
           this._attachedBubbles[xCount + ',0'] = bubble;
         }
       }
@@ -341,7 +344,7 @@ define([], function() {
 
       const callback = () => {
         if (this._shotBubble === null) {
-          // new game pressed while shot bubble was moving
+          // new game pressed while shot bubble was moving, see destroy()
           return;
         }
 

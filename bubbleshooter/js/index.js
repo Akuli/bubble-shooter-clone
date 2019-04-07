@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
         game.destroy();
       }
       game = new core.Game(shooterRadius, bubbleCreateCb, bubbleMoveCb, bubbleDestroyCallback, statusChangedCallback);
+      game.addEventListener('BubbleCreate', event => bubbleCreateCb(event.bubble));
+      game.addEventListener('BubbleMove', event => bubbleMoveCb(event.bubble));
+      game.addEventListener('BubbleDestroy', event => bubbleDestroyCallback(event.bubble));
+      game.addEventListener('StatusChanged', () => statusChangedCallback());
+      game.onEventsConnected();
     }
 
     newGameButton.addEventListener('click', () => newGame());

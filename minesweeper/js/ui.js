@@ -34,7 +34,8 @@ define(['./core.js'], function(core) {
       this._squareElems = {};
       this._statusMessageElem.classList.add('hidden');
 
-      this.currentGame = new core.Game(width, height, mineCount, (() => this._onStatusChanged()));
+      this.currentGame = new core.Game(width, height, mineCount);
+      this.currentGame.addEventListener('StatusChanged', () => this._onStatusChanged());
       this._onStatusChanged();
 
       for (let x = 0; x < width; x++) {
