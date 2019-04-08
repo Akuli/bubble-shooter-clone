@@ -12,7 +12,7 @@ define([], function() {
 
       this.width = width;
       this.height = height;
-      this._mineCount = mineCount;
+      this.mineCount = mineCount;
 
       this._map = {};   // { "x,y": { opened: boolean, mine: boolean, flagged: boolean } }
       for (let x = 0; x < width; x++) {
@@ -64,7 +64,7 @@ define([], function() {
 
     _addMines() {
       let mined = 0;
-      while (mined < this._mineCount) {
+      while (mined < this.mineCount) {
         const x = Math.floor(Math.random() * this.width);
         const y = Math.floor(Math.random() * this.height);
         const square = this._map[x + ',' + y];

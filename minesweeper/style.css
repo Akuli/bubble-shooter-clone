@@ -9,11 +9,16 @@
     width: 5em;
 }
 
-#game {
+#game-inner-container {
     float: left;
     margin-right: 2em;
     margin-bottom: 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
+#game {
     display: grid;
     /* javascript creates the rows and columns, and they use these sizes automatically */
     grid-auto-columns: 2em;

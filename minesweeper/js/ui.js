@@ -5,10 +5,11 @@ define(['./core.js'], function(core) {
   const UNICODE_ASTERISK = '\u2217';
 
   class UI {
-    constructor(gridDiv, statusMessageElem) {
+    constructor(gridDiv, statusMessageElem, statusBarElem) {
       gridDiv.addEventListener('contextmenu', event => event.preventDefault());   // makes it less annoying
       this._gridDiv = gridDiv;
       this._statusMessageElem = statusMessageElem;
+      this._statusBarElem = statusBarElem;
       this._squareElems = {};
       this.currentGame = null;
     }
@@ -68,14 +69,22 @@ define(['./core.js'], function(core) {
           this._gridDiv.appendChild(elem);
         }
       }
+
+      this._updateSquares();
     }
 
     _updateSquares() {
+      let flagsTotal = 0;
+
       for (let x = 0; x < this.currentGame.width; x++) {
         for (let y = 0; y < this.currentGame.height; y++) {
           const xy = [ x, y ];
 
           const squareInfo = this.currentGame.getSquareInfo(xy);
+
+          if (squareInfo.flagged) {
+            flagsTotal++;
+          }
 
           let mineNumber = null;    // null for e.g. mines at end of game, or an integer: 0, 1, 2, ..., 8
           let textContent = "";
@@ -116,6 +125,8 @@ define(['./core.js'], function(core) {
           }
         }
       }
+
+      this._statusBarElem.textContent = `${flagsTotal}/${this.currentGame.mineCount} mines flagged`;
     }
   }
 
