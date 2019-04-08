@@ -1,7 +1,7 @@
 #game-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, 15em);
-    grid-auto-rows: minmax(16em, auto);
+    grid-auto-rows: 16em;
 }
 
 #game-list > a {
@@ -19,14 +19,13 @@
 #game-list > a > h4 {
     font-size: 1.4em;
     margin-top: 0.1em;
-    margin-bottom: 0px;
+    margin-bottom: 0.3em;
 }
 
 #game-list > a > img {
-    object-fit: contain;
+    flex: 1;
+    object-fit: cover;
     max-width: 12em;
-    margin-top: auto;
-    margin-bottom: auto;
     border-radius: 10%;
     box-shadow: 0.3em 0.4em rgba(0, 0, 0, 0.2);
 }
