@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const newGameButton = document.getElementById('new-game-button');
   const gameDiv = document.getElementById('game');
-  const statusMessagePara = document.getElementById('game-status-message');
   const statusBarSpan = document.getElementById('game-statusbar');
 
   function validateEverything(minePercentageToCount) {
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   require(['./js/ui.js'], function(UI) {
-    const ui = new UI(gameDiv, statusMessagePara, statusBarSpan);
+    const ui = new UI(gameDiv, statusBarSpan);
 
     function startNewGame() {
       const width = +widthInput.value;

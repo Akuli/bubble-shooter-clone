@@ -1,4 +1,4 @@
-define([], function() {
+define(['../../js/common.js'], function(common) {
   "use strict";
 
   const COLOR_IDS = [ 1, 2, 3, 4, 5, 6 ];
@@ -20,8 +20,6 @@ define([], function() {
 
   // to disallow shooting the bubble e.g. down or very horizontally
   const MOST_HORIZONTAL_ANGLE_SIN = 0.05;
-
-  const GameStatus = Object.freeze({ PLAYING: 1, GAME_OVER: 2, WIN: 3 });
 
   function randomChoice(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -73,10 +71,9 @@ define([], function() {
     }
   }
 
-  class Game extends EventTarget {
+  class Game extends common.Core {
     constructor(shooterBubbleYRelative) {
       super();
-      this.status = GameStatus.PLAYING;
       this._shooterBubbleY = HEIGHT + shooterBubbleYRelative;
       this._shotBubble = null;
       this._nextShotBubble = null;
@@ -92,11 +89,6 @@ define([], function() {
     }
 
     destroy() {
-      if (this.status !== GameStatus.PLAYING) {
-        this.status = GameStatus.PLAYING;
-        this.dispatchEvent(new Event('StatusChanged'));
-      }
-
       for (const bubble of Object.values(this._attachedBubbles)) {
         bubble.destroy();
       }
@@ -115,7 +107,7 @@ define([], function() {
     }
 
     _checkPlaying() {
-      if (this.status !== GameStatus.PLAYING) {
+      if (this.status !== common.GameStatus.PLAYING) {
         throw new Error("expected PLAYING status, but it is " + self.status);
       }
     }
@@ -123,8 +115,7 @@ define([], function() {
     _updateStatus() {
       this._checkPlaying();
       if (Object.entries(this._attachedBubbles).length === 0) {
-        this.status = GameStatus.WIN;
-        this.dispatchEvent(new Event('StatusChanged'));
+        this.status = common.GameStatus.WIN;
         return;
       }
 
@@ -137,8 +128,7 @@ define([], function() {
           throw new Error("invalid y count: " + yCount);
         }
         if (yCount >= Y_BUBBLE_COUNT_LIMIT) {
-          this.status = GameStatus.GAME_OVER;
-          this.dispatchEvent(new Event('StatusChanged'));
+          this.status = common.GameStatus.GAME_OVER;
           return;
         }
       }
@@ -321,7 +311,7 @@ define([], function() {
         }
       }
 
-      if (this.status === GameStatus.PLAYING) {
+      if (this.status === common.GameStatus.PLAYING) {
         this._removeLooseBubbles();
       }
       return true;
@@ -331,15 +321,15 @@ define([], function() {
       return (this._shotBubble !== null);
     }
 
+    // assumes that the angle is from correctShootAngle()
     shoot(angle) {
       const bubble = this._nextShotBubble;
       this._createNextShotBubble();
       this._shotBubble = bubble;
 
       const speed = 0.3;
-      const correctedAngle = correctShootAngle(angle);
-      let xVelocity = speed*Math.cos(correctedAngle);
-      let yVelocity = speed*Math.sin(correctedAngle);
+      let xVelocity = speed*Math.cos(angle);
+      let yVelocity = speed*Math.sin(angle);
       let prevTime = +new Date();
 
       const callback = () => {
@@ -382,7 +372,6 @@ define([], function() {
     BUBBLE_RADIUS: BUBBLE_RADIUS,
     WIDTH: WIDTH,
     HEIGHT: HEIGHT,
-    GameStatus: GameStatus,
     Game: Game,
     correctShootAngle: correctShootAngle,
   };

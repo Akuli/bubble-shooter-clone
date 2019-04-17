@@ -1,9 +1,7 @@
-define([], function() {
+define(['../../js/common.js'], function(common) {
   "use strict";
 
-  const GameStatus = Object.freeze({ PLAYING: 1, GAME_OVER: 2, WIN: 3 });
-
-  class Game extends EventTarget {
+  class Game extends common.Core {
     constructor(width, height, mineCount) {
       super();
       if (mineCount > width*height - 1) {
@@ -22,7 +20,6 @@ define([], function() {
       }
 
       this._minesAdded = false;
-      this.status = GameStatus.PLAYING;
     }
 
     _getNeighbors(xy) {
@@ -87,8 +84,7 @@ define([], function() {
       }
 
       if (this._map[xy].mine) {
-        this.status = GameStatus.GAME_OVER;
-        this.dispatchEvent(new Event('StatusChanged'));
+        this.status = common.GameStatus.GAME_OVER;
       } else if (this._countNeighborMines(xy) === 0) {
         for (const neighbor of this._getNeighbors(xy)) {
           this._openRecurser(neighbor);
@@ -97,15 +93,15 @@ define([], function() {
     }
 
     open(xy) {
-      if (this.status !== GameStatus.PLAYING || this._map[xy].flagged) {
+      if (this.status !== common.GameStatus.PLAYING || this._map[xy].flagged) {
         return;
       }
 
       this._openRecurser(xy);
-      if (this.status === GameStatus.GAME_OVER) {
+      if (this.status === common.GameStatus.GAME_OVER) {
         return;
       }
-      if (this.status !== GameStatus.PLAYING) {
+      if (this.status !== common.GameStatus.PLAYING) {
         throw new Error("unexpected status: " + this.status);
       }
 
@@ -118,19 +114,18 @@ define([], function() {
           }
         }
       }
-      this.status = GameStatus.WIN;
-      this.dispatchEvent(new Event('StatusChanged'));
+      this.status = common.GameStatus.WIN;
     }
 
     toggleFlag(xy) {
-      if (this.status !== GameStatus.PLAYING || this._map[xy].opened) {
+      if (this.status !== common.GameStatus.PLAYING || this._map[xy].opened) {
         return;
       }
       this._map[xy].flagged = !this._map[xy].flagged;
     }
 
     openAroundIfSafe(xy) {
-      if (this.status !== GameStatus.PLAYING || !this._map[xy].opened) {
+      if (this.status !== common.GameStatus.PLAYING || !this._map[xy].opened) {
         return;
       }
 
@@ -154,7 +149,6 @@ define([], function() {
   }
 
   return {
-    GameStatus: GameStatus,
     Game: Game,
   };
 });

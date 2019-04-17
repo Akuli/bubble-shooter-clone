@@ -1,43 +1,24 @@
-define(['./core.js'], function(core) {
+define(['./core.js', '../../js/common.js'], function(core, common) {
   "use strict";
 
   const UNICODE_FLAG = '\u2691';
   const UNICODE_ASTERISK = '\u2217';
 
-  class UI {
-    constructor(gridDiv, statusMessageElem, statusBarElem) {
-      gridDiv.addEventListener('contextmenu', event => event.preventDefault());   // makes it less annoying
-      this._gridDiv = gridDiv;
-      this._statusMessageElem = statusMessageElem;
+  class UI extends common.UI {
+    constructor(gameDiv, statusBarElem) {
+      super(gameDiv);
+      gameDiv.addEventListener('contextmenu', event => event.preventDefault());   // makes it less annoying
       this._statusBarElem = statusBarElem;
       this._squareElems = {};
-      this.currentGame = null;
-    }
-
-    _onStatusChanged() {
-      if (this.currentGame.status === core.GameStatus.GAME_OVER) {
-        this._statusMessageElem.classList.remove('hidden');
-        this._statusMessageElem.textContent = "Game Over :(";
-      } else if (this.currentGame.status === core.GameStatus.WIN) {
-        this._statusMessageElem.textContent = "You win :)";
-        this._statusMessageElem.classList.remove('hidden');
-      } else if (this.currentGame.status === core.GameStatus.PLAYING) {
-        this._statusMessageElem.classList.add('hidden');
-      } else {
-        throw new Error("unexpected status: " + this.currentGame.status);
-      }
     }
 
     newGame(width, height, mineCount) {
       for (const elem of Object.values(this._squareElems)) {
-        this._gridDiv.removeChild(elem);
+        this.gameDiv.removeChild(elem);
       }
       this._squareElems = {};
-      this._statusMessageElem.classList.add('hidden');
 
       this.currentGame = new core.Game(width, height, mineCount);
-      this.currentGame.addEventListener('StatusChanged', () => this._onStatusChanged());
-      this._onStatusChanged();
 
       for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
@@ -66,13 +47,15 @@ define(['./core.js'], function(core) {
           });
 
           this._squareElems[x + ',' + y] = elem;
-          this._gridDiv.appendChild(elem);
+          this.gameDiv.appendChild(elem);
         }
       }
 
       this._updateSquares();
+      super.newGame();
     }
 
+    // TODO: should be implemented with callbacks instead of a huge updater function
     _updateSquares() {
       let flagsTotal = 0;
 
@@ -89,11 +72,11 @@ define(['./core.js'], function(core) {
           let mineNumber = null;    // null for e.g. mines at end of game, or an integer: 0, 1, 2, ..., 8
           let textContent = "";
 
-          if ((this.currentGame.status === core.GameStatus.PLAYING && squareInfo.opened) ||
-              (this.currentGame.status !== core.GameStatus.PLAYING && !squareInfo.mine)) {
+          if ((this.currentGame.status === common.GameStatus.PLAYING && squareInfo.opened) ||
+              (this.currentGame.status !== common.GameStatus.PLAYING && !squareInfo.mine)) {
             mineNumber = squareInfo.minesAround;
             textContent += squareInfo.minesAround;
-          } else if (this.currentGame.status === core.GameStatus.PLAYING) {
+          } else if (this.currentGame.status === common.GameStatus.PLAYING) {
             if (squareInfo.flagged) {
               textContent += UNICODE_FLAG;
             }
