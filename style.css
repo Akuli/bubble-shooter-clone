@@ -44,5 +44,8 @@ input:invalid {
     border-radius: 8px;
     background-color: whitesmoke;
     border: 1px solid gray;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
     user-select: none;
 }
