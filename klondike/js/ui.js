@@ -27,6 +27,13 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
         div.style.left = (100/7)/2 + '%';
         div.style.top = (Y_SPACING_SMALL + CARD_HEIGHT/2) + 'px';
 
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') !== -1) {
+          // https://stackoverflow.com/q/29784166
+          // the css file says translate(-50%, -50%) which works in other browsers
+          // the bug doesn't happen if the translate amount is an integer
+          div.style.transform = `translate(-${Math.round(CARD_WIDTH/2)}px, -${Math.round(CARD_HEIGHT/2)}px)`;
+        }
+
         for (const loop of [1, 2]) {   // loop 2 times, to create top left and bottom right corner stuff
           const subDiv = document.createElement('div');
           div.appendChild(subDiv);
