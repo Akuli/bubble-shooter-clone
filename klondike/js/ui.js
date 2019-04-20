@@ -46,11 +46,28 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
         gameDiv.appendChild(div);
 
         card.addEventListener('VisibleChanged', event => this._onCardVisibleChanged(event));
-        div.addEventListener('mousedown', event => this._beginDrag(card, event));
+        div.addEventListener('mousedown', event => {
+          if (event.which === 1) {
+            this._beginDrag(card, event);
+          }
+        });
+
+        div.addEventListener('auxclick', event => {
+          this._onAuxClick(card);
+          event.stopPropagation();  // don't do the non-card auxclick handling
+        });
       }
 
-      gameDiv.addEventListener('click', event => this._onClick(event));
+      gameDiv.addEventListener('click', event => {
+        if (event.which === 2) {
+          // clicked with mouse wheel, do same stuff as on double click
+          this._onAuxClick(null);
+        } else {
+          this._onClick(event);
+        }
+      });
       gameDiv.addEventListener('mousemove', event => this._doDrag(event));
+      gameDiv.addEventListener('auxclick', () => this._onAuxClick(null));
 
       // this should do the right thing if the cards are dragged out of the
       // game area or out of the whole browser
@@ -223,6 +240,18 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       const clickedCardPlace = this._cardPlaceFromRelativeCoordinates(xRelative, yRelative);
       if (clickedCardPlace !== null && clickedCardPlace.kind === 'stock') {
         this.currentGame.stockToDiscard();
+      }
+    }
+
+    _onAuxClick(card) {
+      if (this.currentGame.status !== common.GameStatus.PLAYING) {
+        return;
+      }
+
+      if (card === null) {
+        this.currentGame.moveAnyCardToAnyFoundationIfPossible();
+      } else {
+        this.currentGame.moveCardToAnyFoundationIfPossible(card, this.currentGame.findCurrentPlace(card));
       }
     }
 

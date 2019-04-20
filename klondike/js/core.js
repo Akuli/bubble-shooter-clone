@@ -265,6 +265,32 @@ define(['../../js/common.js'], function(common) {
         card.visible = true;
       }
     }
+
+    moveCardToAnyFoundationIfPossible(card, sourcePlace) {
+      for (let i = 0; i < 4; i++) {
+        const foundationPlace = new CardPlace('foundation', i);
+        if (this.canMove(card, sourcePlace, foundationPlace)) {
+          this.move(card, sourcePlace, foundationPlace);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    moveAnyCardToAnyFoundationIfPossible() {
+      const arraysAndPlaces = this._tableau.map((cardArray, index) => {
+        return { array: cardArray, place: new CardPlace('tableau', index) };
+      }).concat([
+        { array: this._discard, place: new CardPlace('discard') },
+      ]);
+
+      for (const { array, place } of arraysAndPlaces) {
+        if ( array.length !== 0 && this.moveCardToAnyFoundationIfPossible(array[array.length - 1], place) ) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   return {
