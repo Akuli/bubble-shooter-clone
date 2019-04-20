@@ -1,0 +1,52 @@
+#game {
+    min-height: 25em;   /* javascript sets height, but that can't make it smaller than this */
+    background-color: #0a0;
+    position: relative;
+}
+
+.status-message {
+    /* TODO: figure out how to make it stretch to the text size instead */
+    width: 10em;
+    text-align: center;
+
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+
+    /* cards use about 100 and a little more, this puts it above them */
+    z-index: 200;
+}
+
+.card {
+    /* card size is defined in the javascript because it's much easier that way imo */
+    border-radius: 8px;
+    background-color: #339;
+    border: 1px solid #333;
+    transform: translate(-50%, -50%);
+    position: absolute;
+}
+.card.visible {
+    background-color: whitesmoke;
+}
+.card.ready2drop {
+    border: 4px solid blue;
+}
+
+.card > div {
+    display: flex;
+    position: absolute;
+    margin: 3px;
+    font-size: 1.3em;
+    flex-direction: column;
+    align-items: center;
+    color: transparent;   /* hides everything unless .visible rules override */
+}
+
+.card div:nth-of-type(2) {
+    right: 0px;
+    bottom: 0px;
+    transform: rotate(180deg);
+}
+
+.card.black.visible > div { color: black; }
+.card.red.visible > div { color: red; }
