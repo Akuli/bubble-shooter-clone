@@ -2,6 +2,8 @@
     min-height: 25em;   /* javascript sets height, but that can't make it smaller than this */
     background-color: #0a0;
     position: relative;
+    transition-property: height;
+    transition-duration: 0.5s;
 }
 
 .status-message {
@@ -11,7 +13,7 @@
 
     position: relative;
     left: 50%;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, 0px);
 
     /* cards use about 100 and a little more, this puts it above them */
     z-index: 200;
@@ -24,12 +26,17 @@
     border: 1px solid #333;
     transform: translate(-50%, -50%);
     position: absolute;
+    transition-property: background-color, left, top, z-index;
+    transition-duration: 0.2s;
 }
 .card.visible {
     background-color: whitesmoke;
 }
+.card.dragging {
+    transition-property: none;
+}
 .card.ready2drop {
-    border: 4px solid blue;
+    border: 5px solid blue;
 }
 
 .card > div {
@@ -39,7 +46,13 @@
     font-size: 1.3em;
     flex-direction: column;
     align-items: center;
-    color: transparent;   /* hides everything unless .visible rules override */
+    opacity: 0;   /* hides everything unless .visible rules override */
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.card.visible > div {
+    opacity: 1;
 }
 
 .card div:nth-of-type(2) {

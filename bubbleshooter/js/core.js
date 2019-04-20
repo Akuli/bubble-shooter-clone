@@ -66,6 +66,10 @@ define(['../../js/common.js'], function(common) {
       this._doEvent('BubbleMove');
     }
 
+    doAttachedEvent() {
+      this._doEvent('BubbleAttached');
+    }
+
     destroy() {
       this._doEvent('BubbleDestroy');
     }
@@ -85,6 +89,10 @@ define(['../../js/common.js'], function(common) {
       for (let i = 0; i < Y_BUBBLE_COUNT_LIMIT/2; i++) {
         this._addBubbleRowOrRows(COLOR_IDS);
       }
+      for (const bubble of Object.values(this._attachedBubbles)) {
+        bubble.doAttachedEvent();
+      }
+
       this._createNextShotBubble();   // must be last for some reason
     }
 
@@ -296,6 +304,7 @@ define(['../../js/common.js'], function(common) {
       }
 
       this._attachedBubbles[nearestCounts] = bubble;
+      bubble.doAttachedEvent();
       bubble.coords = this._getCoords(nearestCounts);
 
       const sameColor = this._getSameColorNeighbors(nearestCounts);

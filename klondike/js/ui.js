@@ -155,6 +155,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
           zIndex: div.style.zIndex,
         };
         div.style.zIndex = 100 + index;
+        div.classList.add('dragging');
 
         return {
           card: card,
@@ -232,6 +233,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
 
       for (const cardInfo of this._draggingState.cardInfos) {
         cardInfo.div.classList.remove('ready2drop');
+        cardInfo.div.classList.remove('dragging');
       }
       this._draggingState = null;
     }

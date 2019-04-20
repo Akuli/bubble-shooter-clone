@@ -22,9 +22,13 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       elem.style.height = 2*core.BUBBLE_RADIUS + 'px';
       elem.classList.add('bubble');
       elem.classList.add('bubble' + bubble.colorId);
+      elem.classList.add('invisible');   // for css animations
       this._bubbleAreaDiv.appendChild(elem);
       this._bubbleElements.set(bubble, elem);
       this._bubbleMoveCb(bubble);
+
+      // this needs a timeout for some reason
+      setTimeout((() => elem.classList.remove('invisible')), 50);
     }
 
     _bubbleMoveCb(bubble) {
@@ -34,12 +38,19 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       elem.style.top = (y - core.BUBBLE_RADIUS) + 'px';
     }
 
+    _bubbleAttachedCb(bubble) {
+      this._bubbleElements.get(bubble).classList.add('attached');
+    }
+
     _bubbleDestroyCb(bubble) {
       const elem = this._bubbleElements.get(bubble);
       if (!this._bubbleElements.delete(bubble)) {
         throw new Error("delete failed: " + bubble);
       }
-      elem.parentElement.removeChild(elem);
+
+      // this is not just elem.parentElement.removeChild(elem) because css animations
+      elem.classList.add('invisible');
+      window.setTimeout(1000, () => elem.parentElement.removeChild(elem));
     }
 
     newGame() {
@@ -50,6 +61,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       this.currentGame = new core.Game(this._shooterRadius);
       this.currentGame.addEventListener('BubbleCreate', event => this._bubbleCreateCb(event.bubble));
       this.currentGame.addEventListener('BubbleMove', event => this._bubbleMoveCb(event.bubble));
+      this.currentGame.addEventListener('BubbleAttached', event => this._bubbleAttachedCb(event.bubble));
       this.currentGame.addEventListener('BubbleDestroy', event => this._bubbleDestroyCb(event.bubble));
       this.currentGame.onEventsConnected();
       super.newGame();

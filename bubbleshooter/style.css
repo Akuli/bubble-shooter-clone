@@ -11,6 +11,18 @@
 .bubble {
     position: absolute;
     border-radius: 50%;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.bubble.attached {
+    transition-property: opacity, left, top;
+    transition-duration: 0.2s;
+}
+
+.bubble.invisible {
+    transform: scaleX(1.4) scaleY(1.4);
+    opacity: 0;
 }
 
 #game-shooter {
