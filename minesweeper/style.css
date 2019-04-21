@@ -1,21 +1,7 @@
-#minesweeper-inputs {
-    display: grid;
-    grid-template-columns: 10em 1fr;
-    row-gap: 3px;
-    margin-bottom: 10px;
-}
-
-#minesweeper-inputs > input {
-    width: 5em;
-}
-
 #game-inner-container {
     float: left;
     margin-right: 2em;
     margin-bottom: 1em;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 #game {
@@ -48,7 +34,7 @@
     position: absolute;
 }
 
-#game-settings {
+.setting-box {
     float: left;
 }
 

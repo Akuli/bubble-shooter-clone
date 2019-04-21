@@ -83,11 +83,14 @@ define(['../../js/common.js'], function(common) {
   }
 
   class Game extends common.Core {
-    constructor(cards) {
+    constructor(cards, pickCount) {
       if (cards.length !== 13*4) {
         throw new Error(`expected ${13*4} cards, got ${cards.length} cards`);
       }
       super();
+
+      this._pickCount = pickCount;
+      this._currentlyPicked = 0;
 
       this._allCards = Array.from(cards);   // would be confusing to modify argument in-place
       shuffle(this._allCards);
@@ -251,17 +254,18 @@ define(['../../js/common.js'], function(common) {
     }
 
     stockToDiscard() {
-      // TODO: pick more than 1 card at a time, if user wants to
       if (this._stock.length === 0) {
-        while (this._discard.length !== 0) {
-          const card = this._discard.pop();
+        for (const card of this._discard) {
           card.visible = false;
-          this._moveCards([card], new CardPlace('stock'));
         }
+        this._moveCards(this._discard, new CardPlace('stock'));
+        this._discard.length = 0;
       } else {
-        const card = this._stock.pop();
-        this._moveCards([card], new CardPlace('discard'));
-        card.visible = true;
+        const cards = this._stock.splice(0, this._pickCount);
+        this._moveCards(cards, new CardPlace('discard'));
+        for (const card of cards) {
+          card.visible = true;
+        }
       }
     }
 

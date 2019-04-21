@@ -1,3 +1,8 @@
+.setting-box {
+    width: 17em;
+    margin-top: 10px;
+}
+
 #game {
     min-height: 25em;   /* javascript sets height, but that can't make it smaller than this */
     background-color: #0a0;

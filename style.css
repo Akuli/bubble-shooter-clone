@@ -14,12 +14,29 @@ html {
     border-radius: 0.8em;
     padding: 0.5em;
     background-color: rgb(0, 250, 100);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.setting-inputs {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    row-gap: 3px;
+    margin-bottom: 10px;
+}
+
+.setting-inputs > input {
+    width: 5em;
 }
 
 .new-game-button {
     /* TODO: more interesting background */
     font-size: 2em;
     margin: 0.5em;
+    align-self: center;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 
 input:invalid {

@@ -1,10 +1,13 @@
 define(['./core.js', '../../js/common.js'], function(core, common) {
   "use strict";
 
+  const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
+
   const CARD_WIDTH = 70;
-  const CARD_HEIGHT = CARD_WIDTH * (1 + Math.sqrt(5)) / 2;   // golden ratio
-  const Y_SPACING_SMALL = 0.1*CARD_HEIGHT
-  const Y_SPACING_BIG = 0.3*CARD_HEIGHT
+  const CARD_HEIGHT = CARD_WIDTH * GOLDEN_RATIO;
+  const Y_SPACING_SMALL = 0.1*CARD_HEIGHT;
+  const Y_SPACING_BIG = 0.3*CARD_HEIGHT;
+  const X_SPACING = 0.3*CARD_WIDTH;
 
   // cardDiv.left and cardDiv.right are actually coordinates of its center :D
   class UI extends common.UI {
@@ -281,25 +284,31 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
         }
       }
 
-      const xCenterPercents = (xCount + 1/2) / 7 * 100;
+      let xExtraOffset = 0;
+      const xCenterPercentsPart = (xCount + 1/2) / 7 * 100;
       let zIndex = 1;
       for (const card of this.currentGame.arrayFromCardPlace(event.newPlace)) {
         const div = this._cardDivs[card.getIdString()];
-        div.style.left = xCenterPercents + '%';
+        div.style.left = `calc(${xCenterPercentsPart}% + ${xExtraOffset}px)`;
         div.style.top = yCenter + 'px';
         div.style.zIndex = zIndex++;
         if (event.newPlace.kind === 'tableau') {
           yCenter += card.visible ? Y_SPACING_BIG : Y_SPACING_SMALL;
         }
+        window.asdf = event.cards;
+        if (event.newPlace.kind === 'discard' && event.cards.includes(card)) {
+          xExtraOffset += X_SPACING;
+        }
       }
 
       // i think this is not possible with just css
+      // this assumes that all y coordinates are in pixels, which would be wrong for x coordinates
       const maxCardCenterY = Math.max(...( Object.values(this._cardDivs).map(div => +div.style.top.split('px')[0]) ));
       this.gameDiv.style.height = (maxCardCenterY + CARD_HEIGHT/2 + Y_SPACING_SMALL) + 'px';
     }
 
-    newGame() {
-      this.currentGame = new core.Game(Object.values(this._cards));
+    newGame(pickCount) {
+      this.currentGame = new core.Game(Object.values(this._cards), pickCount);
       this.currentGame.addEventListener('CardsMoved', (event => this._onCardsMoved(event)));
       this.currentGame.deal();
       super.newGame();
