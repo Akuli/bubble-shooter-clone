@@ -16,11 +16,6 @@ define(['../../js/common.js'], function(common) {
       this._visible = false;
     }
 
-    // this identifies the cards well
-    getIdString() {
-      return this.suit.name + this.number;
-    }
-
     getNumberString() {
       switch (this.number) {
         case 1: return 'A';
@@ -166,7 +161,7 @@ define(['../../js/common.js'], function(common) {
         }
       }
 
-      throw new Error("cannot find card: " + card.getIdString());
+      throw new Error("cannot find card");
     }
 
     // should be called to check whether dragging the card is allowed

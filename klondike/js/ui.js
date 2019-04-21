@@ -15,12 +15,9 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       super(gameDiv);
 
       const cards = core.createCards();
-      this._cards = {};      // { card.getIdString(): card }
-      this._cardDivs = {};   // { card.getIdString(): div }
+      this._cardToDiv = new Map();
 
       for (const card of cards) {
-        this._cards[card.getIdString()] = card;
-
         const div = document.createElement('div');
         div.classList.add('card');
         div.classList.add(card.suit.color);   // 'red' or 'black'
@@ -51,7 +48,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
           subDiv.appendChild(suitSpan);
         }
 
-        this._cardDivs[card.getIdString()] = div;
+        this._cardToDiv.set(card, div);
         gameDiv.appendChild(div);
 
         card.addEventListener('VisibleChanged', event => this._onCardVisibleChanged(event));
@@ -88,9 +85,9 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
 
     _onCardVisibleChanged(event) {
       if (event.card.visible) {
-        this._cardDivs[event.card.getIdString()].classList.add('visible');
+        this._cardToDiv.get(event.card).classList.add('visible');
       } else {
-        this._cardDivs[event.card.getIdString()].classList.remove('visible');
+        this._cardToDiv.get(event.card).classList.remove('visible');
       }
     }
 
@@ -148,7 +145,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       }
 
       const cardInfos = movingCards.map((card, index) => {
-        const div = this._cardDivs[card.getIdString()];
+        const div = this._cardToDiv.get(card);
         const divRect = div.getBoundingClientRect();
 
         const oldStyle = {
@@ -288,7 +285,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       const xCenterPercentsPart = (xCount + 1/2) / 7 * 100;
       let zIndex = 1;
       for (const card of this.currentGame.arrayFromCardPlace(event.newPlace)) {
-        const div = this._cardDivs[card.getIdString()];
+        const div = this._cardToDiv.get(card);
         div.style.left = `calc(${xCenterPercentsPart}% + ${xExtraOffset}px)`;
         div.style.top = yCenter + 'px';
         div.style.zIndex = zIndex++;
@@ -303,12 +300,12 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
 
       // i think this is not possible with just css
       // this assumes that all y coordinates are in pixels, which would be wrong for x coordinates
-      const maxCardCenterY = Math.max(...( Object.values(this._cardDivs).map(div => +div.style.top.split('px')[0]) ));
+      const maxCardCenterY = Math.max(...( Array.from(this._cardToDiv.values()).map(div => +div.style.top.split('px')[0]) ));
       this.gameDiv.style.height = (maxCardCenterY + CARD_HEIGHT/2 + Y_SPACING_SMALL) + 'px';
     }
 
     newGame(pickCount) {
-      this.currentGame = new core.Game(Object.values(this._cards), pickCount);
+      this.currentGame = new core.Game(Array.from(this._cardToDiv.keys()), pickCount);
       this.currentGame.addEventListener('CardsMoved', (event => this._onCardsMoved(event)));
       this.currentGame.deal();
       super.newGame();
