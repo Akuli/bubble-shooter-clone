@@ -8,7 +8,6 @@ define(['../../js/common.js'], function(common) {
     { name: 'diamond', color: 'red', unicode: '\u2666' },
   ];
 
-  // stacks of cards are implemented with linked lists (this.next) because that's surprisingly easy
   class Card extends EventTarget {
     constructor(number, suit) {
       super();

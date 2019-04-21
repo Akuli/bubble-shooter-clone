@@ -7,7 +7,6 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
   const Y_SPACING_BIG = 0.3*CARD_HEIGHT
 
   // cardDiv.left and cardDiv.right are actually coordinates of its center :D
-  // 
   class UI extends common.UI {
     constructor(gameDiv) {
       super(gameDiv);
@@ -258,7 +257,7 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       }
 
       if (card === null) {
-        this.currentGame.moveAnyCardToAnyFoundationIfPossible();
+        while( this.currentGame.moveAnyCardToAnyFoundationIfPossible() ){}
       } else {
         this.currentGame.moveCardToAnyFoundationIfPossible(card, this.currentGame.findCurrentPlace(card));
       }
