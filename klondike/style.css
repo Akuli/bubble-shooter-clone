@@ -24,13 +24,26 @@
     z-index: 200;
 }
 
-.card {
+.card, .card-place {
     /* card size is defined in the javascript because it's much easier that way imo */
     border-radius: 8px;
-    background-color: #339;
-    border: 1px solid #333;
     transform: translate(-50%, -50%);
     position: absolute;
+}
+.card-place {
+    background-color: #090;
+    border: 2px solid #080;
+
+    /* make sure that these things get "hidden" behind the cards
+       without this, it looks ok on chromium but not on firefox */
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.card {
+    background-color: #339;
+    border: 1px solid #333;
     transition-property: background-color, left, top, z-index;
     transition-duration: 0.2s;
 }

@@ -14,6 +14,28 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
     constructor(gameDiv) {
       super(gameDiv);
 
+      for (let xCount = 0; xCount < 7; xCount++) {
+        for (let yCount = 0; yCount < 2; yCount++) {
+          if (xCount === 2 && yCount === 0) {
+            continue;
+          }
+
+          const div = document.createElement('div');
+          div.classList.add('card-place');
+          div.style.width = CARD_WIDTH + 'px';
+          div.style.height = CARD_HEIGHT + 'px';
+          div.style.left = (xCount + 0.5) * 100/7 + '%';
+          div.style.top = ( yCount*(Y_SPACING_SMALL + CARD_HEIGHT) + Y_SPACING_SMALL + CARD_HEIGHT/2 )+'px';
+
+          if (xCount === 0 && yCount === 0) {
+            // bottom of the stock
+            div.addEventListener('click', () => this._onClick(null));
+          }
+
+          gameDiv.appendChild(div);
+        }
+      }
+
       const cards = core.createCards();
       this._cardToDiv = new Map();
 
@@ -57,21 +79,15 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
             this._beginDrag(card, event);
           }
         });
-
+        div.addEventListener('click', event => {
+          this._onClick(card);
+        });
         div.addEventListener('auxclick', event => {
           this._onAuxClick(card);
           event.stopPropagation();  // don't do the non-card auxclick handling
         });
       }
 
-      gameDiv.addEventListener('click', event => {
-        if (event.which === 2) {
-          // clicked with mouse wheel, do same stuff as on double click
-          this._onAuxClick(null);
-        } else {
-          this._onClick(event);
-        }
-      });
       gameDiv.addEventListener('mousemove', event => this._doDrag(event));
       gameDiv.addEventListener('auxclick', () => this._onAuxClick(null));
 
@@ -237,16 +253,11 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
       this._draggingState = null;
     }
 
-    _onClick(event) {
+    _onClick(card) {
       if (this.currentGame.status !== common.GameStatus.PLAYING) {
         return;
       }
-
-      const gameDivRect = this.gameDiv.getBoundingClientRect();
-      const xRelative = event.clientX - gameDivRect.left;
-      const yRelative = event.clientY - gameDivRect.top;
-      const clickedCardPlace = this._cardPlaceFromRelativeCoordinates(xRelative, yRelative);
-      if (clickedCardPlace !== null && clickedCardPlace.kind === 'stock') {
+      if (card === null || this.currentGame.arrayFromCardPlace(new core.CardPlace('stock')).includes(card)) {
         this.currentGame.stockToDiscard();
       }
     }
@@ -292,7 +303,6 @@ define(['./core.js', '../../js/common.js'], function(core, common) {
         if (event.newPlace.kind === 'tableau') {
           yCenter += card.visible ? Y_SPACING_BIG : Y_SPACING_SMALL;
         }
-        window.asdf = event.cards;
         if (event.newPlace.kind === 'discard' && event.cards.includes(card)) {
           xExtraOffset += X_SPACING;
         }
