@@ -1,6 +1,7 @@
-document.addEventListener('DOMContentLoaded', function() {
-  "use strict";
+import { MinesweeperUI } from './ui.js';
 
+
+document.addEventListener('DOMContentLoaded', function() {
   const widthInput = document.getElementById('width-input');
   const heightInput = document.getElementById('height-input');
   const mineCountInput = document.getElementById('mine-count-input');
@@ -60,17 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  require(['./js/ui.js'], function(UI) {
-    const ui = new UI(gameDiv, statusBarSpan);
+  const ui = new MinesweeperUI(gameDiv, statusBarSpan);
 
-    function startNewGame() {
-      const width = +widthInput.value;
-      const height = +heightInput.value;
-      const nMines = +mineCountInput.value;
-      ui.newGame(width, height, nMines);
-    }
+  function startNewGame() {
+    const width = +widthInput.value;
+    const height = +heightInput.value;
+    const nMines = +mineCountInput.value;
+    ui.newGame(width, height, nMines);
+  }
 
-    newGameButton.addEventListener('click', startNewGame);
-    startNewGame();
-  });
+  newGameButton.addEventListener('click', startNewGame);
+  startNewGame();
 });
