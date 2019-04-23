@@ -1,6 +1,6 @@
 import { KlondikeCore } from './core.js';
 import { GameStatus } from '../../common/js/game.js';
-import { CardGameUI, X_SPACING, Y_SPACING_BIG, Y_SPACING_SMALL } from '../../common/js/cards.js';
+import { CardGameUI, SPACING_MEDIUM, SPACING_BIG, SPACING_SMALL } from '../../common/js/cards.js';
 
 
 export class KlondikeUI extends CardGameUI {
@@ -45,10 +45,10 @@ export class KlondikeUI extends CardGameUI {
 
   getNextCardOffset(card, movedCards, newPlaceId) {
     if (newPlaceId === 'discard' && movedCards.includes(card)) {
-      return [X_SPACING, 0];
+      return [SPACING_MEDIUM, 0];
     }
     if (newPlaceId.startsWith('tableau')) {
-      return card.visible ? [0, Y_SPACING_BIG] : [0, Y_SPACING_SMALL];
+      return card.visible ? [0, SPACING_BIG] : [0, SPACING_SMALL];
     }
     return [0, 0];
   }

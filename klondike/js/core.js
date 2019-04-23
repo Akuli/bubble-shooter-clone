@@ -10,9 +10,6 @@ export class KlondikeCore extends CardGameCore {
   }
 
   constructor(allCards, pickCount) {
-    if (allCards.length !== 13*4) {
-      throw new Error(`expected ${13*4} cards, got ${allCards.length} cards`);
-    }
     super(allCards);
 
     this._pickCount = pickCount;

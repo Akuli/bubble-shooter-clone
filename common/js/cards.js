@@ -201,9 +201,9 @@ const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
 
 const CARD_WIDTH = 70;
 const CARD_HEIGHT = CARD_WIDTH * GOLDEN_RATIO;
-export const Y_SPACING_SMALL = 0.1*CARD_HEIGHT;
-export const Y_SPACING_BIG = 0.3*CARD_HEIGHT;
-export const X_SPACING = 0.3*CARD_WIDTH;
+export const SPACING_SMALL = 0.1*CARD_HEIGHT;
+export const SPACING_MEDIUM = 0.3*CARD_WIDTH;   // note: this one has WIDTH, others have HEIGHT
+export const SPACING_BIG = 0.3*CARD_HEIGHT;
 
 function putNumberBetween(num, min, maxPlus1) {
   if (num < min) {
@@ -232,7 +232,7 @@ export class CardGameUI extends GameUI {
       div.style.width = CARD_WIDTH + 'px';
       div.style.height = CARD_HEIGHT + 'px';
       div.style.left = (xCount + 1/2)*xIncrementPercents + '%';
-      div.style.top = ( yCount*(Y_SPACING_SMALL + CARD_HEIGHT) + Y_SPACING_SMALL + CARD_HEIGHT/2 )+'px';
+      div.style.top = ( yCount*(SPACING_SMALL + CARD_HEIGHT) + SPACING_SMALL + CARD_HEIGHT/2 )+'px';
       gameDiv.appendChild(div);
       this.cardPlaceDivs[id] = div;
     }
@@ -247,7 +247,7 @@ export class CardGameUI extends GameUI {
       div.style.width = CARD_WIDTH + 'px';
       div.style.height = CARD_HEIGHT + 'px';
       div.style.left = xIncrementPercents/2 + '%';
-      div.style.top = (Y_SPACING_SMALL + CARD_HEIGHT/2) + 'px';
+      div.style.top = (SPACING_SMALL + CARD_HEIGHT/2) + 'px';
 
       if (navigator.userAgent.toLowerCase().indexOf('firefox') !== -1) {
         // https://stackoverflow.com/q/29784166
@@ -365,12 +365,12 @@ export class CardGameUI extends GameUI {
     const xRatio = x / totalWidth;
     const xCountRaw = Math.floor(xRatio * this._CoreClass.getCardPlaces().width);
 
-    const yCenterOfYCountZero = Y_SPACING_SMALL + CARD_HEIGHT/2;
-    const yDifferenceBetweenTwoRows = Y_SPACING_SMALL + CARD_HEIGHT;
+    const yCenterOfYCountZero = SPACING_SMALL + CARD_HEIGHT/2;
+    const yDifferenceBetweenTwoRows = SPACING_SMALL + CARD_HEIGHT;
     const yDifference = y - yCenterOfYCountZero;
     const yCountRaw = Math.round(yDifference / yDifferenceBetweenTwoRows);
 
-    // this makes the game much more intuitive when card piles get tall (e.g. tableau in solitaire)
+    // this makes the game much more intuitive when card piles get tall (e.g. tableau in klondike)
     const xCount = putNumberBetween(xCountRaw, 0, this._CoreClass.getCardPlaces().width);
     const yCount = putNumberBetween(yCountRaw, 0, this._CoreClass.getCardPlaces().height);
 
@@ -452,7 +452,7 @@ export class CardGameUI extends GameUI {
     const [ xCount, yCount ] = this._CoreClass.getCardPlaces().placeIdToCounts[event.newPlaceId];
     const xIncrementPercents = 100 / this._CoreClass.getCardPlaces().width;
     const xCenterPercents = (xCount + 1/2) * xIncrementPercents;
-    const yCenter = Y_SPACING_SMALL + CARD_HEIGHT/2 + (Y_SPACING_SMALL + CARD_HEIGHT)*yCount;
+    const yCenter = SPACING_SMALL + CARD_HEIGHT/2 + (SPACING_SMALL + CARD_HEIGHT)*yCount;
 
     let zIndex = 1;
     let xOffset = 0;
@@ -472,6 +472,6 @@ export class CardGameUI extends GameUI {
     // i think this is not possible with just css
     // this assumes that all y coordinates are in pixels, which would be wrong for x coordinates
     const maxCardCenterY = Math.max(...( Array.from(this.cardDivs.values()).map(div => +div.style.top.split('px')[0]) ));
-    this.gameDiv.style.height = (maxCardCenterY + CARD_HEIGHT/2 + Y_SPACING_SMALL) + 'px';
+    this.gameDiv.style.height = (maxCardCenterY + CARD_HEIGHT/2 + SPACING_SMALL) + 'px';
   }
 }
