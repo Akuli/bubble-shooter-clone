@@ -1,200 +1,79 @@
-define(['../../js/common.js'], function(common) {
+define(['../../js/cards.js'], function(cards) {
   "use strict";
 
-  const SUITS = [
-    { name: 'spade', color: 'black', unicode: '\u2660' },
-    { name: 'club', color: 'black', unicode: '\u2663' },
-    { name: 'heart', color: 'red', unicode: '\u2665' },
-    { name: 'diamond', color: 'red', unicode: '\u2666' },
-  ];
-
-  class Card extends EventTarget {
-    constructor(number, suit) {
-      super();
-      this.number = number;
-      this.suit = suit;
-      this._visible = false;
+  class KlondikeCore extends cards.CardGameCore {
+    static getCardPlaceStrings() {
+      return [
+        "stock discard - foundation foundation foundation foundation",
+        "tableau tableau tableau tableau tableau tableau tableau",
+      ];
     }
 
-    getNumberString() {
-      switch (this.number) {
-        case 1: return 'A';
-        case 11: return 'J';
-        case 12: return 'Q';
-        case 13: return 'K';
-        default: return (this.number + '');
+    constructor(allCards, pickCount) {
+      if (allCards.length !== 13*4) {
+        throw new Error(`expected ${13*4} cards, got ${allCards.length} cards`);
       }
-    }
-
-    get visible() {
-      return this._visible;
-    }
-
-    set visible(boolValue) {
-      this._visible = boolValue;
-      const event = new Event('VisibleChanged');
-      event.card = this;
-      this.dispatchEvent(event);
-    }
-  }
-
-  // https://stackoverflow.com/a/6274381
-  function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-  }
-
-  class CardPlace {
-    constructor(kind, optionalNumber) {
-      this.kind = kind;
-
-      if (kind === 'stock' || kind == 'discard') {
-        if (optionalNumber !== undefined) {
-          throw new Error(`should be cardPlace('${kind}'), not cardPlace('${kind}', something)`);
-        }
-        this.number = null;
-      } else if (kind === 'foundation' || kind === 'tableau') {
-        const numberLimit = { foundation: 4, tableau: 7 }[kind];
-        if (typeof(optionalNumber) !== 'number' || optionalNumber < 0 || optionalNumber >= numberLimit) {
-          throw new Error(`expected an integer between 0 and ${numberLimit-1}, got ${optionalNumber}`);
-        }
-        this.number = optionalNumber;
-      } else {
-        throw new Error(`unknown card place kind: ${kind}`);
-      }
-    }
-  }
-
-  function createCards() {
-    const result = [];
-    for (const suit of SUITS) {
-      for (let number = 1; number <= 13; number++) {
-        result.push(new Card(number, suit));
-      }
-    }
-    return result;
-  }
-
-  class Game extends common.Core {
-    constructor(cards, pickCount) {
-      if (cards.length !== 13*4) {
-        throw new Error(`expected ${13*4} cards, got ${cards.length} cards`);
-      }
-      super();
+      super(allCards);
 
       this._pickCount = pickCount;
       this._currentlyPicked = 0;
-
-      this._allCards = Array.from(cards);   // would be confusing to modify argument in-place
-      shuffle(this._allCards);
-
-      this._tableau = [ [], [], [], [], [], [], [] ];
-      this._foundations = [ [], [], [], [] ];
-      this._discard = [];
-      this._stock = [];
 
       for (const card of this._allCards) {
         card.visible = false;
       }
     }
 
-    arrayFromCardPlace(place) {
-      switch (place.kind) {
-        case 'foundation': return this._foundations[place.number];
-        case 'tableau': return this._tableau[place.number];
-        case 'stock': return this._stock;
-        case 'discard': return this._discard;
-        default: throw new Error(`unknown card place kind: ${place.kind}`);
-      }
+    checkWin() {
+      const foundationArrays = this.constructor.getCardPlaces().kindToPlaceIds.foundation.map(id => this.placeIdToCardArray[id]);
+      return foundationArrays.every(cardArray => (cardArray.length === 13));
     }
 
-    _moveCards(cardArray, newPlace, setStatus) {
-      if (setStatus === undefined) {
-        setStatus = true;
-      }
-
-      this.arrayFromCardPlace(newPlace).push(...cardArray);
-
-      const event = new Event('CardsMoved');
-      event.newPlace = newPlace;
-      event.cards = cardArray;
-      this.dispatchEvent(event);
-
-      if ( setStatus && this._foundations.every(cardList => (cardList.length === 13)) ) {
-        this.status = common.GameStatus.WIN;
-      }
-    }
-
-    // must be called after constructing a Game
     deal() {
-      this._moveCards(this._allCards, new CardPlace('stock'), false);
+      this.moveCards(this._allCards, 'stock', false);
       for (let i = 0; i < 7; i++) {
         const howManyCardsToMove = i+1;
-        const cardsToMove = this._stock.splice(-howManyCardsToMove);
-        this._moveCards(cardsToMove, new CardPlace('tableau', i));
+        const cardsToMove = this.placeIdToCardArray.stock.splice(-howManyCardsToMove);
+        this.moveCards(cardsToMove, 'tableau' + i);
         cardsToMove[cardsToMove.length - 1].visible = true;
       }
     }
 
-    _cardInSomeTableau(card) {
-      return this._tableau.some(subArray => subArray.includes(card));
-    }
-
-    // this is kind of slow, avoid e.g. calling in a loop
-    findCurrentPlace(card) {
-      if (this._stock.includes(card)) {
-        return new CardPlace('stock');
-      }
-      if (this._discard.includes(card)) {
-        return new CardPlace('discard');
-      }
-      for (let i = 0; i < this._foundations.length; i++) {
-        if (this._foundations[i].includes(card)) {
-          return new CardPlace('foundation', i);
-        }
-      }
-      for (let i = 0; i < this._tableau.length; i++) {
-        if (this._tableau[i].includes(card)) {
-          return new CardPlace('tableau', i);
-        }
-      }
-
-      throw new Error("cannot find card");
-    }
-
-    // should be called to check whether dragging the card is allowed
-    canMaybeMoveSomewhere(card, sourcePlace) {
-      if (sourcePlace.kind === 'stock') {
-        // never makes sense (discarding is handled separately)
+    canMaybeMoveSomewhere(card, sourcePlaceId) {
+      if (sourcePlaceId === 'stock') {
+        // never makes sense (stock to discard moving is handled separately, see stockToDiscard)
         return false;
       }
-      if (sourcePlace.kind === 'discard' || sourcePlace.kind === 'foundation') {
-        // makes sense only for the topmost card
-        const cardArray = this.arrayFromCardPlace(sourcePlace);
+      if (sourcePlaceId === 'discard' || sourcePlaceId.startsWith('foundation')) {
+        // only topmost card can move
+        const cardArray = this.placeIdToCardArray[sourcePlaceId];
         return (card === cardArray[cardArray.length - 1]);
       }
-      if (sourcePlace.kind === 'tableau') {
+      if (sourcePlaceId.startsWith('tableau')) {
         return card.visible;
       }
-      throw new Error("unknown card place kind: " + sourcePlace.kind);
+      throw new Error("unknown card place id: " + sourcePlaceId);
     }
 
-    canMove(card, sourcePlace, destPlace) {
-      const sourceArray = this.arrayFromCardPlace(sourcePlace);
+    _cardInSomeTableau(card) {
+      const tableauArrays = this.constructor.getCardPlaces().kindToPlaceIds.tableau.map(id => this.placeIdToCardArray[id]);
+      return tableauArrays.some(subArray => subArray.includes(card));
+    }
+
+    canMove(card, sourcePlaceId, destPlaceId) {
+      const sourceArray = this.placeIdToCardArray[sourcePlaceId];
+      const destArray = this.placeIdToCardArray[destPlaceId];
+
       const sourceArrayIndex = sourceArray.indexOf(card);
       if (sourceArrayIndex < 0) {
-        throw new Error("card and sourcePlace don't match");
+        throw new Error("card and sourcePlaceId don't match");
       }
       const isTopmost = (sourceArrayIndex === sourceArray.length - 1);
 
       if (isTopmost) {
-        if (destPlace.kind === 'stock' || destPlace.kind === 'discard' || !card.visible) {
+        if (destPlaceId === 'stock' || destPlaceId === 'discard' || !card.visible) {
           return false;
         }
-        if (destPlace.kind === 'foundation') {
-          const destArray = this._foundations[destPlace.number];
+        if (destPlaceId.startsWith('foundation')) {
           if (destArray.length === 0) {
             return (card.number === 1);
           }
@@ -204,16 +83,15 @@ define(['../../js/common.js'], function(common) {
       } else {
         // the only valid move for a stack of cards is tableau --> tableau
         // for that, the bottommost moving card must be visible
-        if (!( this._cardInSomeTableau(card) && destPlace.kind === 'tableau' && card.visible )) {
+        if (!( sourcePlaceId.startsWith('tableau') && destPlaceId.startsWith('tableau') && card.visible )) {
           return false;
         }
         // the tableau move is checked below like any other tableau move
       }
 
-      if (destPlace.kind !== 'tableau') {
+      if (!destPlaceId.startsWith('tableau')) {
         throw new Error("bug");   // lol
       }
-      const destArray = this._tableau[destPlace.number];
       if (destArray.length === 0) {
         return (card.number === 13);
       }
@@ -221,54 +99,36 @@ define(['../../js/common.js'], function(common) {
       return (card.suit.color !== topmostCard.suit.color && card.number === topmostCard.number - 1);
     }
 
-    // removes a card and the cards on top of it from the game, and returns an array of them
-    _detachCards(card, sourcePlace) {
-      const cardArray = this.arrayFromCardPlace(sourcePlace);
-    }
+    rawMove(card, sourcePlaceId, destPlaceId) {
+      super.rawMove(card, sourcePlaceId, destPlaceId);
 
-    rawMove(card, sourcePlace, destPlace) {
-      const sourceArray = this.arrayFromCardPlace(sourcePlace);
-      const index = sourceArray.indexOf(card);
-      if (index === -1) {
-        throw new Error("card and sourcePlace don't match");
-      }
-      const moving = sourceArray.splice(index);
-
-      this._moveCards(moving, destPlace);
-
-      if (sourcePlace.kind === 'tableau' && sourceArray.length !== 0) {
+      const sourceArray = this.placeIdToCardArray[sourcePlaceId];
+      if (sourcePlaceId.startsWith('tableau') && sourceArray.length !== 0) {
         sourceArray[sourceArray.length - 1].visible = true;
       }
     }
 
-    move(card, sourcePlace, destPlace) {
-      if (!this.canMove(card, sourcePlace, destPlace)) {
-        throw new Error("invalid move");
-      }
-      this.rawMove(card, sourcePlace, destPlace);
-    }
-
     stockToDiscard() {
-      if (this._stock.length === 0) {
-        for (const card of this._discard) {
+      if (this.placeIdToCardArray.stock.length === 0) {
+        for (const card of this.placeIdToCardArray.discard) {
           card.visible = false;
         }
-        this._moveCards(this._discard, new CardPlace('stock'));
-        this._discard.length = 0;
+        this.moveCards(this.placeIdToCardArray.discard, 'stock');
+        this.placeIdToCardArray.discard.length = 0;
       } else {
-        const cards = this._stock.splice(0, this._pickCount);
-        this._moveCards(cards, new CardPlace('discard'));
-        for (const card of cards) {
+        const cardArray = this.placeIdToCardArray.stock.splice(0, this._pickCount);
+        this.moveCards(cardArray, 'discard');
+        for (const card of cardArray) {
           card.visible = true;
         }
       }
     }
 
-    moveCardToAnyFoundationIfPossible(card, sourcePlace) {
-      for (let i = 0; i < 4; i++) {
-        const foundationPlace = new CardPlace('foundation', i);
-        if (this.canMove(card, sourcePlace, foundationPlace)) {
-          this.move(card, sourcePlace, foundationPlace);
+    moveCardToAnyFoundationIfPossible(card, sourcePlaceId) {
+      // TODO: do nothing if the card is already in a foundation
+      for (const foundationId of this.constructor.getCardPlaces().kindToPlaceIds.foundation) {
+        if (this.canMove(card, sourcePlaceId, foundationId)) {
+          this.move(card, sourcePlaceId, foundationId);
           return true;
         }
       }
@@ -276,14 +136,9 @@ define(['../../js/common.js'], function(common) {
     }
 
     moveAnyCardToAnyFoundationIfPossible() {
-      const arraysAndPlaces = this._tableau.map((cardArray, index) => {
-        return { array: cardArray, place: new CardPlace('tableau', index) };
-      }).concat([
-        { array: this._discard, place: new CardPlace('discard') },
-      ]);
-
-      for (const { array, place } of arraysAndPlaces) {
-        if ( array.length !== 0 && this.moveCardToAnyFoundationIfPossible(array[array.length - 1], place) ) {
+      for ( const id of this.constructor.getCardPlaces().kindToPlaceIds.tableau.concat(['discard']) ) {
+        const array = this.placeIdToCardArray[id];
+        if (array.length !== 0 && this.moveCardToAnyFoundationIfPossible(array[array.length - 1], id)) {
           return true;
         }
       }
@@ -291,9 +146,5 @@ define(['../../js/common.js'], function(common) {
     }
   }
 
-  return {
-    CardPlace: CardPlace,
-    Game: Game,
-    createCards: createCards,
-  };
+  return KlondikeCore;
 });
