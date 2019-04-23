@@ -9,4 +9,8 @@ Here are some screenshots:
 
 ![Minesweeper screenshot.](minesweeper/screenshot.png)
 
-Clone the repository, open `index.html` and edit the code to develop these games.
+
+## Developing the games
+
+Clone the repository and run `server.py` with Python 3. Then go to
+`localhost:8000` with your browser.
