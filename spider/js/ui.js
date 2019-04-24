@@ -17,7 +17,21 @@ export class SpiderUI extends CardGameUI {
       return;
     }
     if (this.currentGame.placeIdToCardArray.stock.includes(card)) {
-      this.currentGame.stockToTableau();
+      const whyNot = this.currentGame.whichTableausPreventStockToTableau();
+      if (whyNot.length === 0) {
+        this.currentGame.stockToTableau();
+      } else {
+        for (const placeId of whyNot) {
+          this.cardPlaceDivs[placeId].classList.add('cannot-stock-to-tableau');
+        }
+
+        // TODO: use a css transition instead of setTimeout
+        window.setTimeout(() => {
+          for (const placeId of whyNot) {
+            this.cardPlaceDivs[placeId].classList.remove('cannot-stock-to-tableau');
+          }
+        }, 500);
+      }
     }
   }
 

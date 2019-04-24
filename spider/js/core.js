@@ -133,7 +133,6 @@ export class SpiderCore extends CardGameCore {
     }
 
     const destArray = this.placeIdToCardArray[destPlaceId];
-    window.asdf = this;
     if (destPlaceId.startsWith('tableau') && destArray.length >= 13) {
       // if a tableau has visible cards K,Q,J,10,9,...,A at top AND they are all of the same suit
       // then foundation them
@@ -155,7 +154,18 @@ export class SpiderCore extends CardGameCore {
     }
   }
 
+  // stockToTableau is not allowed when there are empty tableaus
+  // this returns an array of ids of tableaus (can be empty)
+  // the ui complains to the user about the tableaus if nonempty
+  whichTableausPreventStockToTableau() {
+    return this.constructor.getCardPlaces().kindToPlaceIds.tableau.filter(id => this.placeIdToCardArray[id].length === 0);
+  }
+
   stockToTableau() {
+    if (this.whichTableausPreventStockToTableau().length !== 0) {
+      throw new Error("whichTableausPreventStockToTableau() wasn't used");
+    }
+
     const tableauIdArray = this.constructor.getCardPlaces().kindToPlaceIds.tableau;
     if (this.placeIdToCardArray.stock.length % tableauIdArray.length !== 0) {
       throw new Error("calculations are wrong");
