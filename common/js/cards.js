@@ -3,16 +3,16 @@ import { GameCore, GameStatus, GameUI } from './game.js';
 
 export const SUITS = [
   { name: 'spade', color: 'black', unicode: '\u2660' },
-  { name: 'club', color: 'black', unicode: '\u2663' },
   { name: 'heart', color: 'red', unicode: '\u2665' },
+  { name: 'club', color: 'black', unicode: '\u2663' },
   { name: 'diamond', color: 'red', unicode: '\u2666' },
 ];
 
 export class Card extends EventTarget {
   constructor(number, suit) {
     super();
-    this.number = number;
-    this.suit = suit;
+    this._number = number;
+    this._suit = suit;
     this._visible = false;
   }
 
@@ -26,16 +26,13 @@ export class Card extends EventTarget {
     }
   }
 
-  get visible() {
-    return this._visible;
-  }
+  get number() { return this._number; }
+  get suit() { return this._suit; }
+  get visible() { return this._visible; }
 
-  set visible(boolValue) {
-    this._visible = boolValue;
-    const event = new Event('VisibleChanged');
-    event.card = this;
-    this.dispatchEvent(event);
-  }
+  set number(value) { this._number = value; this.dispatchEvent(new Event('CardChanged')); }
+  set suit(value) { this._suit = value; this.dispatchEvent(new Event('CardChanged')); }
+  set visible(value) { this._visible = value; this.dispatchEvent(new Event('CardChanged')); }
 }
 
 // https://stackoverflow.com/a/6274381
@@ -121,6 +118,11 @@ export class CardGameCore extends GameCore {
 
   constructor(allCards) {
     super();
+
+    for (const card of allCards) {
+      card.visible = false;
+    }
+
     this._allCards = Array.from(allCards);   // would be confusing to modify argument in-place
     shuffle(this._allCards);
 
@@ -262,19 +264,19 @@ export class CardGameUI extends GameUI {
 
         const numberSpan = document.createElement('span');
         numberSpan.classList.add('number');
-        numberSpan.textContent = card.getNumberString();
         subDiv.appendChild(numberSpan);
 
         const suitSpan = document.createElement('span');
         suitSpan.classList.add('suit');
-        suitSpan.textContent = card.suit.unicode;
         subDiv.appendChild(suitSpan);
       }
 
       this.cardDivs.set(card, div);
       gameDiv.appendChild(div);
 
-      card.addEventListener('VisibleChanged', event => this._onCardVisibleChanged(event));
+      card.addEventListener('CardChanged', event => this._onCardChanged(card));
+      this._onCardChanged(card);
+
       div.addEventListener('mousedown', event => {
         if (event.which === 1) {
           this._beginDrag(card, event);
@@ -299,11 +301,26 @@ export class CardGameUI extends GameUI {
     super.newGame();
   }
 
-  _onCardVisibleChanged(event) {
-    if (event.card.visible) {
-      this.cardDivs.get(event.card).classList.add('visible');
+  _onCardChanged(card) {
+    const div = this.cardDivs.get(card);
+
+    for (const suit of SUITS) {
+      div.classList.remove(suit.color);
+    }
+    div.classList.add(card.suit.color);
+
+    for (const numberSpan of div.querySelectorAll('.number')) {
+      numberSpan.textContent = card.getNumberString();
+    }
+
+    for (const suitSpan of div.querySelectorAll('.suit')) {
+      suitSpan.textContent = card.suit.unicode;
+    }
+
+    if (card.visible) {
+      div.classList.add('visible');
     } else {
-      this.cardDivs.get(event.card).classList.remove('visible');
+      div.classList.remove('visible');
     }
   }
 

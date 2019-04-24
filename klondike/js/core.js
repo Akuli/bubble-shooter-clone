@@ -11,13 +11,8 @@ export class KlondikeCore extends CardGameCore {
 
   constructor(allCards, pickCount) {
     super(allCards);
-
     this._pickCount = pickCount;
     this._currentlyPicked = 0;
-
-    for (const card of this._allCards) {
-      card.visible = false;
-    }
   }
 
   checkWin() {

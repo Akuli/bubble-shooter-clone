@@ -3,7 +3,7 @@ import { CardGameCore, Card, SUITS } from '../../common/js/cards.js';
 
 export class SpiderCore extends CardGameCore {
   static createCards() {
-    // there are 2*4*13 cards, and they are all of the same suit
+    // there are 2*4*13 cards, and they are all of the same suit until setDifficulty is called
     const result = [];
     for (let i = 1; i <= 13; i++) {
       for (let j = 0; j < 2*4; j++) {
@@ -20,12 +20,50 @@ export class SpiderCore extends CardGameCore {
     ];
   }
 
-  constructor(allCards) {
-    super(allCards);
+  // the cards can be in any order, but they need to be shuffled after calling this
+  _setDifficulty(allCards, numberOfSuits) {
+    const suitArray = [];
 
-    for (const card of this._allCards) {
-      card.visible = false;
+    // verbose is better than complicated
+    if (numberOfSuits === 1) {
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[0]);
+    } else if (numberOfSuits === 2) {
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[1]);
+      suitArray.push(SUITS[1]);
+    } else if (numberOfSuits === 4) {
+      suitArray.push(SUITS[0]);
+      suitArray.push(SUITS[1]);
+      suitArray.push(SUITS[2]);
+      suitArray.push(SUITS[3]);
+    } else {
+      throw new Error("unknown number of suits: " + numberOfSuits);
     }
+
+    const suitsByNumber = {};
+    for (let number = 1; number <= 13; number++) {
+      // suits are repeated here because there are twice as many cards as in e.g. klondike
+      suitsByNumber[number] = suitArray.concat(suitArray);   // this must copy suitArray
+    }
+
+    for (const card of allCards) {
+      // avoid changing the suit when not needed, that makes this a bit faster
+      const i = suitsByNumber[card.number].indexOf(card.suit);
+      if (i < 0) {
+        card.suit = suitsByNumber[card.number].pop();
+      } else {
+        suitsByNumber[card.number].splice(i, 1);
+      }
+    }
+  }
+
+  constructor(allCards, numberOfSuits) {
+    super(allCards);
+    this._setDifficulty(allCards, numberOfSuits);
   }
 
   checkWin() {
@@ -63,9 +101,10 @@ export class SpiderCore extends CardGameCore {
     const cardsToMove = cardArray.slice(index);
 
     // the numbers of the cards must be decreasing with decrement 1, e.g. 11 10 9 8 7 ...
+    // also all the cards need to be of the same suit (doesn't matter when playing with 1 suit only)
     // note that the loop starts at i=1 to avoid doing cardsToMove[-1]
     for (let i = 1; i < cardsToMove.length; i++) {
-      if (cardsToMove[i].number !== cardsToMove[i-1].number - 1) {
+      if ( cardsToMove[i].number !== cardsToMove[i-1].number-1 || cardsToMove[i].suit !== cardsToMove[i-1].suit ) {
         return false;
       }
     }
@@ -96,9 +135,11 @@ export class SpiderCore extends CardGameCore {
     const destArray = this.placeIdToCardArray[destPlaceId];
     window.asdf = this;
     if (destPlaceId.startsWith('tableau') && destArray.length >= 13) {
-      // if a tableau has visible cards K,Q,J,10,9,...,A at top then foundation it
+      // if a tableau has visible cards K,Q,J,10,9,...,A at top AND they are all of the same suit
+      // then foundation them
       for (let i = 1; i <= 13; i++) {
-        if (destArray[destArray.length - i].number !== i || !destArray[destArray.length - i].visible) {
+        const card = destArray[destArray.length - i];
+        if (card.number !== i || card.suit !== destArray[destArray.length - 1].suit || !card.visible) {
           return;
         }
       }
