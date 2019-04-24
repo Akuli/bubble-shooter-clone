@@ -25,7 +25,7 @@ export class SpiderUI extends CardGameUI {
     if (newPlaceId === 'stock') {
       // offset them so that the cards for each stockToTableau call are together
       const numberOfTableau = SpiderCore.getCardPlaces().kindToPlaceIds.tableau.length;
-      return (movedCards.indexOf(card) % numberOfTableau === 0) ? [SPACING_SMALL, 0] : [0, 0];
+      return (movedCards.indexOf(card) % numberOfTableau === numberOfTableau - 1) ? [SPACING_SMALL, 0] : [0, 0];
     }
     if (newPlaceId.startsWith('tableau')) {
       return card.visible ? [0, SPACING_BIG] : [0, SPACING_SMALL];
