@@ -189,7 +189,7 @@ class SpiderUI extends CardGameUI {
     super(gameDiv, SpiderCore);
 
     for (const [ card, div ] of this.cardDivs.entries()) {
-      div.addEventListener('click', event => this._onClick(card));
+      div.addEventListener('click', () => this._onClick(card));
     }
   }
 

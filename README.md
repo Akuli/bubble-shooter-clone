@@ -14,3 +14,8 @@ Here are some screenshots:
 
 Clone the repository and run `server.py` with Python 3. Then go to
 `localhost:8000` with your browser.
+
+To lint the javascript code, install node and npm, and run these commands:
+
+    npm install
+    node_modules/eslint/bin/eslint.js js

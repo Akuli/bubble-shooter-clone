@@ -185,7 +185,7 @@ class MinesweeperUI extends GameUI {
         });
         elem.addEventListener('dblclick', event => {
           this.currentGame.openAroundIfSafe([ x, y ]);
-          this._updateSquares()
+          this._updateSquares();
           event.preventDefault();
         });
         elem.addEventListener('contextmenu', event => {
@@ -262,7 +262,7 @@ class MinesweeperUI extends GameUI {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const widthInput = document.getElementById('width-input');
   const heightInput = document.getElementById('height-input');
   const mineCountInput = document.getElementById('mine-count-input');

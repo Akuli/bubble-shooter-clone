@@ -16,7 +16,7 @@ const COLOR_IDS = [ 1, 2, 3, 4, 5, 6 ];
 const BUBBLE_RADIUS = 10;
 
 // bubbles can "slide" between other bubbles in handy ways with this
-const EASY_SLIDE_FACTOR = 0.7
+const EASY_SLIDE_FACTOR = 0.7;
 
 // how many times to shoot until a new row of bubbles appears?
 const SHOTS_PER_ROW = 4;
@@ -452,7 +452,7 @@ class BubbleShooterUI extends GameUI {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const gameDiv = document.getElementById('game');
   const bubbleAreaDiv = document.getElementById('game-bubble-area');
   const shooterDiv = document.getElementById('game-shooter');
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ui.setShooterAngle(Math.atan2(yDiff, xDiff));
   });
   newGameButton.addEventListener('click', () => ui.newGame());
-  gameDiv.addEventListener('click', event => ui.shoot());
+  gameDiv.addEventListener('click', () => ui.shoot());
 
   ui.newGame();
 });

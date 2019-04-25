@@ -147,10 +147,10 @@ class KlondikeUI extends CardGameUI {
     this.cardPlaceDivs.stock.addEventListener('click', () => this._onClick(null));
 
     for (const [ card, div ] of this.cardDivs.entries()) {
-      div.addEventListener('click', event => {
+      div.addEventListener('click', () => {
         this._onClick(card);
       });
-      div.addEventListener('auxclick', event => {
+      div.addEventListener('auxclick', () => {
         this._onAuxClick(card);
         event.stopPropagation();  // don't do the non-card auxclick handling
       });
@@ -174,7 +174,7 @@ class KlondikeUI extends CardGameUI {
     }
 
     if (card === null) {
-      while( this.currentGame.moveAnyCardToAnyFoundationIfPossible() ){}
+      while( this.currentGame.moveAnyCardToAnyFoundationIfPossible() ){}      // eslint-disable-line
     } else {
       this.currentGame.moveCardToAnyFoundationIfPossible(card, this.currentGame.findCurrentPlaceId(card));
     }
@@ -192,7 +192,7 @@ class KlondikeUI extends CardGameUI {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const gameDiv = document.getElementById('game');
   const pickInput = document.getElementById('pick-input');
   const newGameButton = document.getElementById('new-game-button');

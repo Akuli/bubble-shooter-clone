@@ -142,11 +142,7 @@ export class CardGameCore extends GameCore {
     throw new Error("wasn't overrided");
   }
 
-  moveCards(cardArray, newPlaceId, setStatus) {
-    if (setStatus === undefined) {
-      setStatus = true;
-    }
-
+  moveCards(cardArray, newPlaceId, setStatus = true) {
     this.placeIdToCardArray[newPlaceId].push(...cardArray);
 
     const event = new Event('CardsMoved');
@@ -170,13 +166,13 @@ export class CardGameCore extends GameCore {
   }
 
   // is called to check whether dragging the card is allowed
-  canMaybeMoveSomewhere(card, sourcePlaceId) {
+  canMaybeMoveSomewhere(card, sourcePlaceId) {   // eslint-disable-line
     throw new Error("wasn't overrided");
   }
 
   // is called to figure out whether a card can be dropped to the place
   // should return false when sourcePlaceId === destPlaceId
-  canMove(card, sourcePlaceId, destPlaceId) {
+  canMove(card, sourcePlaceId, destPlaceId) {   // eslint-disable-line
     throw new Error("wasn't overrided");
   }
 
@@ -258,6 +254,7 @@ export class CardGameUI extends GameUI {
         div.style.transform = `translate(-${Math.round(CARD_WIDTH/2)}px, -${Math.round(CARD_HEIGHT/2)}px)`;
       }
 
+      // eslint-disable-next-line
       for (const loop of [1, 2]) {   // loop 2 times, to create top left and bottom right corner stuff
         const subDiv = document.createElement('div');
         div.appendChild(subDiv);
@@ -274,7 +271,7 @@ export class CardGameUI extends GameUI {
       this.cardDivs.set(card, div);
       gameDiv.appendChild(div);
 
-      card.addEventListener('CardChanged', event => this._onCardChanged(card));
+      card.addEventListener('CardChanged', () => this._onCardChanged(card));
       this._onCardChanged(card);
 
       div.addEventListener('mousedown', event => {
@@ -461,7 +458,7 @@ export class CardGameUI extends GameUI {
 
   // this is ran for each card when cards have been moved
   // override to customize where the cards go
-  getNextCardOffset(card, movedCards, newPlaceId) {
+  getNextCardOffset(card, movedCards, newPlaceId) {   // eslint-disable-line
     return [0, 0];
   }
 
