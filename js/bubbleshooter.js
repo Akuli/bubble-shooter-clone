@@ -1,8 +1,19 @@
-import { GameCore, GameStatus } from '../../common/js/game.js';
+import { GameStatus, GameCore, GameUI } from './game.js';
+
+
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function arrayHypot(arr1, arr2) {
+  const [ x1, y1 ] = arr1;
+  const [ x2, y2 ] = arr2;
+  return Math.hypot(x2 - x1, y2 - y1);
+}
 
 
 const COLOR_IDS = [ 1, 2, 3, 4, 5, 6 ];
-export const BUBBLE_RADIUS = 10;
+const BUBBLE_RADIUS = 10;
 
 // bubbles can "slide" between other bubbles in handy ways with this
 const EASY_SLIDE_FACTOR = 0.7
@@ -15,33 +26,12 @@ const SHOTS_PER_ROW = 4;
 const X_BUBBLE_COUNT_LIMIT = 20;
 const Y_BUBBLE_COUNT_LIMIT = 15;
 
-export const WIDTH = (2*X_BUBBLE_COUNT_LIMIT + 1) * BUBBLE_RADIUS;
-export const HEIGHT = (1 + Math.sqrt(3)*(Y_BUBBLE_COUNT_LIMIT - 1) + 1) * BUBBLE_RADIUS;
+const WIDTH = (2*X_BUBBLE_COUNT_LIMIT + 1) * BUBBLE_RADIUS;
+const HEIGHT = (1 + Math.sqrt(3)*(Y_BUBBLE_COUNT_LIMIT - 1) + 1) * BUBBLE_RADIUS;
 
 // to disallow shooting the bubble e.g. down or very horizontally
 const MOST_HORIZONTAL_ANGLE_SIN = 0.05;
 
-function randomChoice(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function arrayHypot(arr1, arr2) {
-  const [ x1, y1 ] = arr1;
-  const [ x2, y2 ] = arr2;
-  return Math.hypot(x2 - x1, y2 - y1);
-}
-
-export function correctShootAngle(angle) {
-  // using sin and cos here makes sure that it doesn't matter if the angle is e.g. off by 2pi
-  if (Math.sin(angle) > -MOST_HORIZONTAL_ANGLE_SIN) {
-    if (Math.cos(angle) > 0) {
-      return -Math.asin(MOST_HORIZONTAL_ANGLE_SIN);
-    } else {
-      return Math.PI + Math.asin(MOST_HORIZONTAL_ANGLE_SIN);
-    }
-  }
-  return angle;
-}
 
 class Bubble {
   constructor(coords, colorId, game) {
@@ -75,7 +65,19 @@ class Bubble {
   }
 }
 
-export class BubbleShooterCore extends GameCore {
+class BubbleShooterCore extends GameCore {
+  static correctShootAngle(angle) {
+    // using sin and cos here makes sure that it doesn't matter if the angle is e.g. off by 2pi
+    if (Math.sin(angle) > -MOST_HORIZONTAL_ANGLE_SIN) {
+      if (Math.cos(angle) > 0) {
+        return -Math.asin(MOST_HORIZONTAL_ANGLE_SIN);
+      } else {
+        return Math.PI + Math.asin(MOST_HORIZONTAL_ANGLE_SIN);
+      }
+    }
+    return angle;
+  }
+
   constructor(shooterBubbleYRelative) {
     super();
     this._shooterBubbleY = HEIGHT + shooterBubbleYRelative;
@@ -375,3 +377,103 @@ export class BubbleShooterCore extends GameCore {
     callback();
   }
 }
+
+class BubbleShooterUI extends GameUI {
+  constructor(gameDiv, bubbleAreaDiv, shooterDiv) {
+    super(gameDiv);
+    this._bubbleAreaDiv = bubbleAreaDiv;
+    this._shooterDiv = shooterDiv;
+    this._bubbleElements = new Map();
+    this._shooterRadius = shooterDiv.getBoundingClientRect().height / 2;  // this is here for consistency
+    this.setShooterAngle(-2*Math.PI/4);   // up
+  }
+
+  setShooterAngle(angle) {
+    this._correctedShooterAngle = BubbleShooterCore.correctShootAngle(angle);
+    this._shooterDiv.style.transform = `rotate(${this._correctedShooterAngle}rad)`;
+  }
+
+  _bubbleCreateCb(bubble) {
+    const elem = document.createElement('div');
+    elem.style.width = 2*BUBBLE_RADIUS + 'px';
+    elem.style.height = 2*BUBBLE_RADIUS + 'px';
+    elem.classList.add('bubble');
+    elem.classList.add('bubble' + bubble.colorId);
+    elem.classList.add('invisible');   // for css animations
+    this._bubbleAreaDiv.appendChild(elem);
+    this._bubbleElements.set(bubble, elem);
+    this._bubbleMoveCb(bubble);
+
+    // this needs a timeout for some reason
+    setTimeout((() => elem.classList.remove('invisible')), 50);
+  }
+
+  _bubbleMoveCb(bubble) {
+    const elem = this._bubbleElements.get(bubble);
+    const [ x, y ] = bubble.coords;
+    elem.style.left = (x - BUBBLE_RADIUS) + 'px';
+    elem.style.top = (y - BUBBLE_RADIUS) + 'px';
+  }
+
+  _bubbleAttachedCb(bubble) {
+    this._bubbleElements.get(bubble).classList.add('attached');
+  }
+
+  _bubbleDestroyCb(bubble) {
+    const elem = this._bubbleElements.get(bubble);
+    if (!this._bubbleElements.delete(bubble)) {
+      throw new Error("delete failed: " + bubble);
+    }
+
+    // this is not just elem.parentElement.removeChild(elem) because css animations
+    elem.classList.add('invisible');
+    window.setTimeout(1000, () => elem.parentElement.removeChild(elem));
+  }
+
+  newGame() {
+    if (this.currentGame !== null) {
+      this.currentGame.destroy();
+    }
+
+    this.currentGame = new BubbleShooterCore(this._shooterRadius);
+    this.currentGame.addEventListener('BubbleCreate', event => this._bubbleCreateCb(event.bubble));
+    this.currentGame.addEventListener('BubbleMove', event => this._bubbleMoveCb(event.bubble));
+    this.currentGame.addEventListener('BubbleAttached', event => this._bubbleAttachedCb(event.bubble));
+    this.currentGame.addEventListener('BubbleDestroy', event => this._bubbleDestroyCb(event.bubble));
+    this.currentGame.onEventsConnected();
+    super.newGame();
+  }
+
+  shoot() {
+    if (this.currentGame.status === GameStatus.PLAYING && !this.currentGame.shotBubbleMoving) {
+      this.currentGame.shoot(this._correctedShooterAngle);
+    }
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const gameDiv = document.getElementById('game');
+  const bubbleAreaDiv = document.getElementById('game-bubble-area');
+  const shooterDiv = document.getElementById('game-shooter');
+  const newGameButton = document.getElementById('new-game-button');
+
+  bubbleAreaDiv.style.width = WIDTH + 'px';
+  bubbleAreaDiv.style.height = HEIGHT + 'px';
+  shooterDiv.style.marginTop = HEIGHT + 'px';
+
+  const ui = new BubbleShooterUI(gameDiv, bubbleAreaDiv, shooterDiv);
+
+  bubbleAreaDiv.addEventListener('mousemove', event => {
+    const shooterRect = shooterDiv.getBoundingClientRect();
+    const shooterCenterX = (shooterRect.left + shooterRect.right)/2;
+    const shooterCenterY = (shooterRect.top + shooterRect.bottom)/2;
+    const xDiff = event.clientX - shooterCenterX;
+    const yDiff = event.clientY - shooterCenterY;
+    ui.setShooterAngle(Math.atan2(yDiff, xDiff));
+  });
+  newGameButton.addEventListener('click', () => ui.newGame());
+  gameDiv.addEventListener('click', event => ui.shoot());
+
+  ui.newGame();
+});
