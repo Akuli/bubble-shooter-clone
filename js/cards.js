@@ -276,17 +276,26 @@ export class CardGameUI extends GameUI {
 
       div.addEventListener('mousedown', event => {
         if (event.which === 1) {
-          this._beginDrag(card, event);
+          this._beginDrag(card, event.clientX, event.clientY);
         }
       });
+      div.addEventListener('touchstart', event => {
+        this._beginDrag(card, event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+        event.preventDefault();
+      }, { passive: false });
     }
 
-    gameDiv.addEventListener('mousemove', event => this._doDrag(event));
+    gameDiv.addEventListener('mousemove', event => this._doDrag(event.clientX, event.clientY));
+    gameDiv.addEventListener('touchmove', event => {
+      this._doDrag(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+      event.preventDefault();
+    }, { passive: false });
 
     // this should do the right thing if the cards are dragged out of the
     // game area or out of the whole browser
-    gameDiv.addEventListener('mouseleave', () => this._endDrag());
-    gameDiv.addEventListener('mouseup', () => this._endDrag());
+    gameDiv.addEventListener('mouseleave', () => this._endDrag(null));
+    gameDiv.addEventListener('mouseup', () => this._endDrag(null));
+    gameDiv.addEventListener('touchend', event => this._endDrag(event.target));
 
     this._draggingState = null;
   }
@@ -321,13 +330,11 @@ export class CardGameUI extends GameUI {
     }
   }
 
-  _beginDrag(card, event) {
-    if (this.currentGame.status !== GameStatus.PLAYING) {
+  _beginDrag(card, clientX, clientY) {
+    // silently does nothing if already dragging (this._draggingState !== null)
+    // i don't know whether that's possible to have happening with touch events and multiple fingers
+    if (this.currentGame.status !== GameStatus.PLAYING || this._draggingState !== null) {
       return;
-    }
-
-    if (this._draggingState !== null) {
-      throw new Error("drag begins while dragging already");
     }
 
     const oldCardPlaceId = this.currentGame.findCurrentPlaceId(card);
@@ -361,8 +368,8 @@ export class CardGameUI extends GameUI {
         card: card,
         div: div,
         oldStyle: oldStyle,
-        mouseOffsetFromCenterX: event.clientX - (divRect.left + divRect.right)/2,
-        mouseOffsetFromCenterY: event.clientY - (divRect.top + divRect.bottom)/2,
+        mouseOffsetFromCenterX: clientX - (divRect.left + divRect.right)/2,
+        mouseOffsetFromCenterY: clientY - (divRect.top + divRect.bottom)/2,
       };
     });
 
@@ -370,6 +377,7 @@ export class CardGameUI extends GameUI {
       oldCardPlaceId: oldCardPlaceId,
       dropPlaceId: null,
       cardInfos: cardInfos,
+      hasMoved: false,
     };
   }
 
@@ -395,12 +403,9 @@ export class CardGameUI extends GameUI {
     return placeId;
   }
 
-  _doDrag(event) {
-    if (this.currentGame.status !== GameStatus.PLAYING) {
-      return;
-    }
-
-    if (this._draggingState === null) {
+  _doDrag(clientX, clientY) {
+    // i don't know when this would run when _draggingState is null, see _beginDrag()
+    if (this.currentGame.status !== GameStatus.PLAYING || this._draggingState === null) {
       return;
     }
 
@@ -409,8 +414,8 @@ export class CardGameUI extends GameUI {
     let firstYRelative = null;
 
     for (const cardInfo of this._draggingState.cardInfos) {
-      const xRelative = event.clientX - gameDivRect.left - cardInfo.mouseOffsetFromCenterX;
-      const yRelative = event.clientY - gameDivRect.top - cardInfo.mouseOffsetFromCenterY;
+      const xRelative = clientX - gameDivRect.left - cardInfo.mouseOffsetFromCenterX;
+      const yRelative = clientY - gameDivRect.top - cardInfo.mouseOffsetFromCenterY;
       cardInfo.div.style.left = xRelative + 'px';
       cardInfo.div.style.top = yRelative + 'px';
 
@@ -433,10 +438,19 @@ export class CardGameUI extends GameUI {
       }
       this._draggingState.dropPlaceId = null;
     }
+    this._draggingState.hasMoved = true;
   }
 
-  _endDrag() {
-    if (this.currentGame.status !== GameStatus.PLAYING || this._draggingState === null) {
+  _endDrag(touchElement) {
+    if (this.currentGame.status !== GameStatus.PLAYING) {
+      return;
+    }
+
+    if (this._draggingState === null) {
+      // maybe a card was tapped?
+      if (touchElement !== null) {
+        touchElement.click();
+      }
       return;
     }
 
@@ -453,6 +467,12 @@ export class CardGameUI extends GameUI {
       cardInfo.div.classList.remove('ready2drop');
       cardInfo.div.classList.remove('dragging');
     }
+
+    // touch compatibility with 'click' events
+    if (touchElement !== null && !this._draggingState.hasMoved) {
+      touchElement.click();
+    }
+
     this._draggingState = null;
   }
 
