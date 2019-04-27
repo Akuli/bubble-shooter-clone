@@ -281,14 +281,17 @@ export class CardGameUI extends GameUI {
       });
       div.addEventListener('touchstart', event => {
         this._beginDrag(card, event.changedTouches[0].clientX, event.changedTouches[0].clientY);
-        event.preventDefault();
+        if (event.cancelable) {   // https://stackoverflow.com/a/53315365
+          event.preventDefault();
+        }
       }, { passive: false });
     }
 
     gameDiv.addEventListener('mousemove', event => this._doDrag(event.clientX, event.clientY));
     gameDiv.addEventListener('touchmove', event => {
-      this._doDrag(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
-      event.preventDefault();
+      if (this._doDrag(event.changedTouches[0].clientX, event.changedTouches[0].clientY)) {
+        event.preventDefault();
+      }
     }, { passive: false });
 
     // this should do the right thing if the cards are dragged out of the
@@ -406,7 +409,7 @@ export class CardGameUI extends GameUI {
   _doDrag(clientX, clientY) {
     // i don't know when this would run when _draggingState is null, see _beginDrag()
     if (this.currentGame.status !== GameStatus.PLAYING || this._draggingState === null) {
-      return;
+      return false;
     }
 
     const gameDivRect = this.gameDiv.getBoundingClientRect();
@@ -418,6 +421,14 @@ export class CardGameUI extends GameUI {
       const yRelative = clientY - gameDivRect.top - cardInfo.mouseOffsetFromCenterY;
       cardInfo.div.style.left = xRelative + 'px';
       cardInfo.div.style.top = yRelative + 'px';
+
+      // y can get very big because card piles can get tall
+      if (xRelative < 0 || xRelative > gameDivRect.width || yRelative < 0) {
+        // card is being moved outside of the game, abort the whole drag
+        this._draggingState.dropPlaceId = null;
+        this._endDrag(null);
+        return;
+      }
 
       if (firstXRelative === null && firstYRelative === null) {
         firstXRelative = xRelative;
@@ -439,6 +450,17 @@ export class CardGameUI extends GameUI {
       this._draggingState.dropPlaceId = null;
     }
     this._draggingState.hasMoved = true;
+    return true;
+  }
+
+  _isPartOfCard(element) {
+    while (element !== null) {
+      if (element.classList && element.classList.contains('card')) {
+        return true;
+      }
+      element = element.parentNode;
+    }
+    return false;
   }
 
   _endDrag(touchElement) {
@@ -447,8 +469,8 @@ export class CardGameUI extends GameUI {
     }
 
     if (this._draggingState === null) {
-      // maybe a card was tapped?
-      if (touchElement !== null) {
+      // maybe a card was tapped? touch compatibility with 'click' events
+      if (touchElement !== null && this._isPartOfCard(touchElement)) {
         touchElement.click();
       }
       return;
@@ -466,11 +488,6 @@ export class CardGameUI extends GameUI {
     for (const cardInfo of this._draggingState.cardInfos) {
       cardInfo.div.classList.remove('ready2drop');
       cardInfo.div.classList.remove('dragging');
-    }
-
-    // touch compatibility with 'click' events
-    if (touchElement !== null && !this._draggingState.hasMoved) {
-      touchElement.click();
     }
 
     this._draggingState = null;

@@ -145,18 +145,18 @@ class KlondikeUI extends CardGameUI {
     super(gameDiv, KlondikeCore);
 
     this.cardPlaceDivs.stock.addEventListener('click', () => this._onClick(null));
+    gameDiv.addEventListener('click', event => {
+      if (event.target === gameDiv) {
+        this._doStockToDiscard();
+        event.preventDefault();
+      }
+    });
 
     for (const [ card, div ] of this.cardDivs.entries()) {
       div.addEventListener('click', () => {
         this._onClick(card);
       });
-      div.addEventListener('auxclick', () => {
-        this._onAuxClick(card);
-        event.stopPropagation();  // don't do the non-card auxclick handling
-      });
     }
-
-    gameDiv.addEventListener('auxclick', () => this._onAuxClick(null));
   }
 
   _onClick(card) {
@@ -168,16 +168,11 @@ class KlondikeUI extends CardGameUI {
     }
   }
 
-  _onAuxClick(card) {
+  _doStockToDiscard(card) {
     if (this.currentGame.status !== GameStatus.PLAYING) {
       return;
     }
-
-    if (card === null) {
-      while( this.currentGame.moveAnyCardToAnyFoundationIfPossible() ){}      // eslint-disable-line
-    } else {
-      this.currentGame.moveCardToAnyFoundationIfPossible(card, this.currentGame.findCurrentPlaceId(card));
-    }
+    while( this.currentGame.moveAnyCardToAnyFoundationIfPossible() ){}      // eslint-disable-line
   }
 
   getNextCardOffset(card, movedCards, newPlaceId) {
