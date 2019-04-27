@@ -112,12 +112,11 @@ class SpiderCore extends CardGameCore {
     return true;
   }
 
-  _cardInSomeTableau(card) {
-    const tableauArrays = this.constructor.getCardPlaces().kindToPlaceIds.tableau.map(id => this.placeIdToCardArray[id]);
-    return tableauArrays.some(subArray => subArray.includes(card));
-  }
-
   canMove(card, sourcePlaceId, destPlaceId) {
+    if (!destPlaceId.startsWith('tableau')) {
+      return false;
+    }
+
     const destArray = this.placeIdToCardArray[destPlaceId];
     if (destArray.length === 0) {
       return true;
