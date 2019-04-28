@@ -183,11 +183,13 @@ class MinesweeperUI extends GameUI {
           this._updateSquares();
           event.preventDefault();
         });
-        elem.addEventListener('dblclick', event => {
-          this.currentGame.openAroundIfSafe([ x, y ]);
-          this._updateSquares();
-          event.preventDefault();
-        });
+        for (const funnyClick of ['dblclick', 'auxclick']) {
+          elem.addEventListener(funnyClick, event => {
+            this.currentGame.openAroundIfSafe([ x, y ]);
+            this._updateSquares();
+            event.preventDefault();
+          });
+        }
         elem.addEventListener('contextmenu', event => {
           this.currentGame.toggleFlag([ x, y ]);
           this._updateSquares();
