@@ -5,9 +5,9 @@ browsers. [Click here](https://akuli.github.io/html-games/) to play.
 
 Here are some screenshots:
 
-![Bubble shooter screenshot.](bubbleshooter/screenshot.png)
+![Bubble shooter screenshot.](screenshots/bubbleshooter.png)
 
-![Minesweeper screenshot.](minesweeper/screenshot.png)
+![Minesweeper screenshot.](screenshots/minesweeper.png)
 
 
 ## Developing the games
