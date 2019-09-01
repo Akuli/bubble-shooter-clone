@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tetris Clone</title>
+    <script type="module" src="js/tetrisclone.js"></script>
+    <link rel="stylesheet" href="css/common.css"></link>
+    <link rel="stylesheet" href="css/tetrisclone.css"></link>
+</head>
+
+<body>
+    <h1>Tetris Clone</h1>
+
+    <p>
+    The goal is to get as many blocks down as possible.
+    The game ends when a block can't go below the top of the game.
+    If there is a horizontal line that has no empty squares, then that line is removed.
+    </p>
+
+    <p>
+    All blocks of classic tetris consist of 4 squares,
+    but this game also has blocks that consist of 1, 2, 3, or 5 squares.
+    Also, classic tetris is 10 columns wide, but this game is 12 columns wide by default.
+    </p>
+
+    <div id="game-container">
+        <div id="game-inner-container">
+            <div id="game" class="game-area"></div>
+            <span id="game-statusbar"></span>
+        </div>
+
+        <div class="setting-box">
+            <div class="setting-inputs">
+                <label for="width-input">Width:</label>
+                <input type="number" id="width-input" min="1" value="12" required />
+                <label for="height-input">Height:</label>
+                <input type="number" id="height-input" min="1" value="20" required />
+                <label for="initial-level-input">Level in the beginning of the game:</label>
+                <input type="number" id="initial-level-input" min="1" value="1" required />
+            </div>
+
+            <button id="new-game-button" class="new-game-button">New Game</button>
+        </div>
+    </div>
+
+    <p id="link2index"><a href="index.html">Back to the list of games</a></p>
+</body>
+
+</html>

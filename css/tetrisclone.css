@@ -1,0 +1,93 @@
+#game-inner-container {
+    float: left;
+    margin-right: 2em;
+    margin-bottom: 1em;
+}
+
+#game {
+    display: grid;
+    /* javascript creates the rows and columns, and they use these sizes automatically */
+    grid-auto-columns: 2em;
+    grid-auto-rows: 2em;
+
+    position: relative;   /* for the status message */
+}
+
+.status-message {
+    position: absolute;
+    width: 100%;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    /* TODO: make these less hard-coded
+    the text shouldn't be given any more space than it needs
+    centering the text instead is a workaround for that
+    */
+    height: 1em;
+    max-width: 8em;
+    text-align: center;
+}
+
+.status-message:before {
+    content: "";
+    position: absolute;
+}
+
+.setting-box {
+    float: left;
+}
+
+#game-container + * {
+    display: block;
+    clear: both;
+    margin-top: 1em;
+}
+
+.game-area {
+    background-color: black;
+    padding: 3px;   /* avoid issues with different border-radius for .game-area and .square */
+}
+
+.square {
+    margin: 1px;
+}
+
+.square.shape-null { background-color: #111; }
+
+/* 1 square */
+.square.shape-square1 { background-color: #800; }
+
+/* 2 squares */
+.square.shape-I2 { background-color: #9c0; }
+
+/* 3 squares */
+.square.shape-I3 { background-color: #90f; }
+.square.shape-corner2 { background-color: burlywood; }
+
+/* 4 squares (classic) */
+.square.shape-I4 { background-color: #f00; }
+.square.shape-S { background-color: #080; }
+.square.shape-Z { background-color: #0ff; }
+.square.shape-square2 { background-color: #33f; }
+.square.shape-T { background-color: #ff0; }
+.square.shape-L { background-color: #f0f; }
+.square.shape-J { background-color: #fff; }
+
+/* 5 squares */
+.square.shape-b { background-color: #f50; }
+.square.shape-d { background-color: #0f7; }
+.square.shape-hatLeft { background-color: #08f; }
+.square.shape-hatRight { background-color: #0f7; }
+.square.shape-U { background-color: #04f; }
+.square.shape-monsterLeft { background-color: #cf0; }
+.square.shape-monsterRight { background-color: #0ef; }
+.square.shape-Tlong { background-color: #9b0; }
+.square.shape-Llong { background-color: #50f; }
+.square.shape-Jlong { background-color: #fa0; }
+.square.shape-corner3 { background-color: #6f0; }
+.square.shape-M { background-color: #09f; }
+.square.shape-underscoreS { background-color: #0f2; }
+.square.shape-Zunderscore { background-color: #a0f; }
+.square.shape-I5 { background-color: #77f; }
+.square.shape-plus { background-color: #f00; }
