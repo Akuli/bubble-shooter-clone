@@ -21,7 +21,7 @@ const allShapes = [
   ]},
   {name: 'corner2', rotationCount: 4, points: [
     [1, 0],
-    [1, 1],
+    [0, 0],
     [0, 1],
   ]},
 
