@@ -209,9 +209,22 @@ function randomChoice(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+// returns a list of possible points.length values
+function whatKindOfShapesToUse(gameLevel) {
+  switch(gameLevel) {
+    case 1: return [4];          // classic blocks only
+    case 2: return [3, 4];
+    case 3: return [3, 4, 5];
+    case 4: return [2, 3, 4, 5];
+    default: return [1, 2, 3, 4, 5];
+  }
+}
+
 class MovingBlock {
-  constructor(gameWidth) {
-    this.shape = randomChoice(allShapes);
+  constructor(gameWidth, gameLevel) {
+    const nPoints = randomChoice(whatKindOfShapesToUse(gameLevel));
+    this.shape = randomChoice(allShapes.filter(shape => (shape.points.length === nPoints)));
+
     this.rotation = 0;
 
     // -1 makes it look centered for some reason
@@ -260,10 +273,10 @@ class TetrisCloneCore extends GameCore {
     super();
     this.width = width;
     this.height = height;
+    this.blocksAttached = 0;
     this._initialLevel = initialLevel;
     this._landedSquares = Array(height).fill().map(() => Array(width).fill(null));
-    this._movingBlock = new MovingBlock(this.width);
-    this.blocksAttached = 0;
+    this._movingBlock = new MovingBlock(this.width, this.getLevel());
   }
 
   _getShapeName(x, y) {
@@ -390,7 +403,7 @@ class TetrisCloneCore extends GameCore {
       if (this._movingBlockIsFullyInGameArea()) {
         this._attachBlock();
         this._wipeFullLines();
-        this._movingBlock = new MovingBlock(this.width);
+        this._movingBlock = new MovingBlock(this.width, this.getLevel());
       } else {
         this.status = GameStatus.GAME_OVER;
       }
